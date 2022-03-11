@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{94611E2A-95C9-B454-5E77-7F67E0D356E9}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{7BC40F47-905E-347B-D485-C2E058D27C49}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Resource Files">
+      <UniqueIdentifier>{835A0168-4345-CB68-5C5A-B18A11E7907F}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ci">
+      <UniqueIdentifier>{65730987-3c36-4d7e-9a9f-df428f4286dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ci\libAes256">
+      <UniqueIdentifier>{39c6d7da-9eac-420a-b8f1-33771914b8bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ci\libBase">
+      <UniqueIdentifier>{5fa794d1-42f3-429f-8dec-c064da704a18}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ChartViewer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FireGuardGraph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FireGuardGraphDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="preSocketSession.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sockUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LogManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectCameraDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SMSManagerDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libAes256\ciAES256.cpp">
+      <Filter>ci\libAes256</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libAes256\ciAES256_Base.cpp">
+      <Filter>ci\libAes256</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libAes256\ciAES256_PRNG.cpp">
+      <Filter>ci\libAes256</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libAes256\ciElCryptoAes256.cpp">
+      <Filter>ci\libAes256</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libAes256\ciS_Box.cpp">
+      <Filter>ci\libAes256</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libBase\ciArgParser.cpp">
+      <Filter>ci\libBase</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libBase\ciErrObject.cpp">
+      <Filter>ci\libBase</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libBase\ciStringTokenizer.cpp">
+      <Filter>ci\libBase</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libBase\ciStringUtil.cpp">
+      <Filter>ci\libBase</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libBase\ciTime.cpp">
+      <Filter>ci\libBase</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libBase\ciUtil.cpp">
+      <Filter>ci\libBase</Filter>
+    </ClCompile>
+    <ClCompile Include="ci\libBase\ciWin32DLL.cpp">
+      <Filter>ci\libBase</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ChartViewer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FireGuardGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FireGuardGraphDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\skpark\TraceLog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="preSocketSession.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sockUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LogManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectCameraDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SMSManagerDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libAes256\ciAES256.h">
+      <Filter>ci\libAes256</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libAes256\ciAES256_Base.h">
+      <Filter>ci\libAes256</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libAes256\ciAES256_PRNG.h">
+      <Filter>ci\libAes256</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libAes256\ciByte_Block.h">
+      <Filter>ci\libAes256</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libAes256\ciElCryptoAes256.h">
+      <Filter>ci\libAes256</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libAes256\ciPadding_Type.h">
+      <Filter>ci\libAes256</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libAes256\ciS_Box.h">
+      <Filter>ci\libAes256</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libAes256\cistdafx.h">
+      <Filter>ci\libAes256</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciArgParser.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciBaseType.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciErrObject.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciListType.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciMacro.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciPointer.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciStringTokenizer.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciStringUtil.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciTime.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciUtil.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="ci\libBase\ciWin32DLL.h">
+      <Filter>ci\libBase</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="FireGuardGraph.rc">
+      <Filter>Source Files\Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\pointerPB.ico">
+      <Filter>Source Files\Resource Files</Filter>
+    </Image>
+    <Image Include="res\savePB.ico">
+      <Filter>Source Files\Resource Files</Filter>
+    </Image>
+    <Image Include="res\zoomInPB.ico">
+      <Filter>Source Files\Resource Files</Filter>
+    </Image>
+    <Image Include="res\zoomOutPB.ico">
+      <Filter>Source Files\Resource Files</Filter>
+    </Image>
+    <Image Include="res\stopPB.ico">
+      <Filter>Source Files\Resource Files</Filter>
+    </Image>
+    <Image Include="res\FireGuardGraph.ico">
+      <Filter>Source Files\Resource Files</Filter>
+    </Image>
+    <Image Include="res\runPB.ico">
+      <Filter>Source Files\Resource Files</Filter>
+    </Image>
+    <Image Include="res\freezePB.ico">
+      <Filter>Source Files\Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\FireGuardGraph.rc2">
+      <Filter>Source Files\Resource Files</Filter>
+    </None>
+    <None Include="resource.hm">
+      <Filter>Header Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,4 @@
+// Microsoft Visual C++ generated Help ID include file.
+// Used by FireGuardGraph.rc
+//
+#define HIDC_EDIT_THRESHOLD_MAX         0x80660408    // IDD_REALTIMETRACK_DIALOG
