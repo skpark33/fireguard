@@ -30,6 +30,8 @@
 
 #define  TEMPER_OVER  0
 #define  VELOCITY_OVER  1
+#define RGB(r,g,b)          ((COLORREF)(((BYTE)(r)|((WORD)((BYTE)(g))<<8))|(((DWORD)(BYTE)(b))<<16)))
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1783,6 +1785,12 @@ void CStaticHelper::DrawThreshold(HDC hdc, CStatic *self)
 CStaticHelper::CStaticHelper() : m_currentHBITMAP(0), m_WCCisV6(0), m_testMode(false) 
 , m_thresholdMax(-1.0f), m_thresholdMin(-20.0f)
 {
+	//InitFont(m_normalFont1, "Noto Sans KR Black", 48);
+}
+
+CStaticHelper::~CStaticHelper() 
+{
+	//DeleteObject(m_normalFont1);
 }
 
 void CStaticHelper::setHBITMAP(CStatic *self, HBITMAP newBitMap)
@@ -1851,6 +1859,8 @@ void CStaticHelper::onPaint(CStatic *self)
 	cbmp.Detach();
 
 	DrawThreshold(dc, self);
+	//WriteSingleLine("          온도 감시          ", &dc, self, m_normalFont1, RGB(0x26, 0x28, 0x34), 0, 48);
+
 }
 
 void CStaticHelper::displayChart(CStatic *self, BaseChart *c)
@@ -1884,6 +1894,61 @@ void CStaticHelper::displayChart(CStatic *self, BaseChart *c)
 
 	setHBITMAP(self, bmpToHBITMAP(self, m.data));
 }
+
+////skpark
+//void CStaticHelper::WriteSingleLine(
+//	LPCTSTR text,
+//	CDC* pDc,
+//	CStatic* self,
+//	CFont& targetFont,
+//	COLORREF color,
+//	int posY,
+//	int height
+//	)
+//{
+//	CRect rect;
+//	self->GetClientRect(&rect);
+//	int width = rect.Width();
+//	int h = rect.Height();
+//	HDC hDc = pDc->m_hDC;
+//
+//	HGDIOBJ pOld = SelectObject(hDc, targetFont);
+//	SetTextColor(pDc->m_hDC, color);
+//
+//
+//	posY -= 5;
+//
+//	CString buf;
+//	buf.Format("%s %dx%d", text, width, h);
+//
+//	CRect rc(0, posY, width, posY + height);
+//	//pDc->Draw3dRect(1, posY, width-2, posY + height, RGB(0xf1, 0xff,0xff), RGB(0xff,0xff,0xff));
+//	pDc->DrawText(buf, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+//
+//	SelectObject(hDc, pOld);
+//
+//}
+
+//void CStaticHelper::InitFont(CFont& targetFont, LPCTSTR fontName, int fontSize, float fontWidth)
+//{
+//	int lfHeight = static_cast<int>(static_cast<float>(fontSize)*0.6666666f);
+//
+//	LOGFONT* LogFont = new LOGFONT;
+//	memset(LogFont, 0x00, sizeof(LOGFONT));
+//	memset(LogFont->lfFaceName, 0x00, 32);
+//	//_tcsncpy_s(LogFont->lfFaceName, LF_FACESIZE, fontName, strlen(fontName));
+//	strncpy(LogFont->lfFaceName, fontName, strlen(fontName));
+//	LogFont->lfHeight = lfHeight;
+//	LogFont->lfQuality = ANTIALIASED_QUALITY;
+//	LogFont->lfOrientation = 0;
+//	LogFont->lfEscapement = 0;
+//	LogFont->lfItalic = 0;
+//	LogFont->lfUnderline = 0;
+//	LogFont->lfStrikeOut = 0;
+//	LogFont->lfWidth = 0;// lfHeight*fontWidth; //85% 수준의 장평을 준다.
+//
+//	targetFont.CreateFontIndirect(LogFont);
+//}
 
 
 /////////////////////////////////////////////////////////////////////////////

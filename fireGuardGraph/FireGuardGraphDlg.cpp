@@ -21,12 +21,25 @@ using namespace std;
 #endif
 
 
+#define		TEMPER_BG		"t_bg.png"
+#define		VELO_BG		"v_bg.png"
+#define		SLOPE_BG		"s_bg.png"
+
+
+#define		TEMPER_NORMAL_BG		"t_normal.png"
+#define		TEMPER_ALARM_BG		"t_alarm.png"
+#define		VELO_NORMAL_BG		"v_normal.png"
+#define		VELO_ALARM_BG		"v_alarm.png"
+#define		SLOPE_NORMAL_BG		"s_normal.png"
+
+
 /////////////////////////////////////////////////////////////////////////////
 // CThresholdHandler class
 
 CThresholdHandler::CThresholdHandler(int type, CChartViewer* viewer, CEdit* maxE, 
 	CAnimateCtrl* aniCtrl, CEdit*  frequency/*,CEdit* deviation*/)
 {
+	
 	m_type = type;
 	m_maxName = "MAX_THRESHOLD";
 	m_minName = "MIN_THRESHOLD";
@@ -231,8 +244,9 @@ CfireGuardGraphDlg::CfireGuardGraphDlg(CWnd* pParent /*=NULL*/)
 	, m_session(NULL)
 	, m_font(0)
 	, m_isStopAlarm(false)
-	, m_caseNo(0)
+	, m_isStopTrend(false)
 	, m_max_temperature(-999.0f)
+
 {
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_updatePeriod = 250;
@@ -298,6 +312,7 @@ void CfireGuardGraphDlg::DoDataExchange(CDataExchange* pDX)
 	//}}AFX_DATA_MAP
 	DDX_Control(pDX, IDC_EDIT_VELOC_RANGE, m_editFrequency);
 	DDX_Control(pDX, IDC_CHECK_ALARM, m_checkStopAlarm);
+	DDX_Control(pDX, IDC_CHECK_TREND, m_checkStopTrend);
 	DDX_Control(pDX, IDC_BUTTON_SMS_MGR, m_btSMS);
 	DDX_Control(pDX, IDC_CHECK_SEND_MSG, m_checkSMS);
 	DDX_Control(pDX, IDC_STATIC_COUNTER, m_stCounter);
@@ -329,6 +344,7 @@ BEGIN_MESSAGE_MAP(CfireGuardGraphDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_VELOC_APPLY, &CfireGuardGraphDlg::OnBnClickedButtonVelocApply)
 	//ON_EN_KILLFOCUS(IDC_EDIT_THRESHOLD_MAX, &CfireGuardGraphDlg::OnEnKillfocusEditThresholdMax)
 	ON_BN_CLICKED(IDC_CHECK_ALARM, &CfireGuardGraphDlg::OnBnClickedCheckAlarm)
+	ON_BN_CLICKED(IDC_CHECK_TREND, &CfireGuardGraphDlg::OnBnClickedCheckTrend)
 	ON_BN_CLICKED(IDC_BUTTON_SMS_MGR, &CfireGuardGraphDlg::OnBnClickedButtonSmsMgr)
 	ON_BN_CLICKED(IDC_CHECK_SEND_MSG, &CfireGuardGraphDlg::OnBnClickedCheckSendMsg)
 	ON_BN_CLICKED(IDC_CHECK_1, &CfireGuardGraphDlg::OnBnClickedCheck1)
@@ -397,6 +413,9 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
     m_nextDataTime = Chart::chartTime(st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, 
         st.wSecond) + st.wMilliseconds / 1000.0;
 	
+
+	CopyFileA(TEMPER_NORMAL_BG, TEMPER_BG, FALSE);
+	CopyFileA(VELO_NORMAL_BG, VELO_BG, FALSE);
     //
     // Initialize controls
     //
@@ -422,7 +441,12 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
 	GetPrivateProfileString("FIRE_WATCH", "CHECK_DONT_ALARM", "1", buf, 511, iniPath);
 	m_isStopAlarm = bool(atoi(buf));
 	m_checkStopAlarm.SetCheck(int(m_isStopAlarm));
-	    
+
+	memset(buf, 0x00, 512);
+	GetPrivateProfileString("FIRE_WATCH", "CHECK_DONT_TREND", "1", buf, 511, iniPath);
+	m_isStopTrend = bool(atoi(buf));
+	m_checkStopTrend.SetCheck(int(m_isStopTrend));
+
     // Load icons for the Run/Freeze buttons
     loadButtonIcon(IDC_RunPB, IDI_RunPB, 100, 20);
     loadButtonIcon(IDC_FreezePB, IDI_FreezePB, 100, 20);
@@ -474,6 +498,8 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
 	m_SlopeViewer.SetRange(5.0f, -5.0f);
 
 	LoadSendData();
+
+	TraceLog(("OnInitDialog End"));
 
 	return TRUE;
 }
@@ -752,6 +778,10 @@ void CfireGuardGraphDlg::OnDataTimer()
 		bool hasTemperAlarm = false;
 		bool hasVelociAlarm = false;
 
+		static bool hasTemperBgChanged = false;
+		static bool hasVelociBgChanged= false;
+
+
 		if (!m_isStopAlarm)
 		{
 			for (int j = 0; j < MAX_CAMERA; ++j)
@@ -764,15 +794,26 @@ void CfireGuardGraphDlg::OnDataTimer()
 				idStr.Format("%d", j + 1);
 				double value = m_session->GetData(idStr, TEMPER_OVER);
 				hasTemperAlarm = this->m_temperThreshold->RunAlarmSound(value);
+				
 				if (hasTemperAlarm)
 				{
 					if (!m_temperThreshold->hasAleadyPlayed())
 					{
 						SendSMS(j + 1, TEMPER_OVER, value);
 					}
+					if (!hasTemperBgChanged)
+					{
+						// Change Chart Color
+							CopyFileA(TEMPER_ALARM_BG, TEMPER_BG, FALSE);
+							TraceLog(("setBgImage to alarm"));
+							hasTemperBgChanged = true;
+					}
 					break;
 				}
 			}
+		}
+		if (!m_isStopTrend)
+		{
 			for (int j = 0; j < MAX_CAMERA; ++j)
 			{
 				if (m_checkCamera[j].GetCheck() == 0)
@@ -782,22 +823,40 @@ void CfireGuardGraphDlg::OnDataTimer()
 				//double rate = m_rateSeries[j][m_currentIndex];
 				double rate = m_countSeries[j][m_currentIndex];
 				hasVelociAlarm = this->m_velociThreshold->RunAlarmSound(rate);
+
 				if (hasVelociAlarm)
 				{
-					if (!m_temperThreshold->hasAleadyPlayed())
+					if (!m_velociThreshold->hasAleadyPlayed())
 					{
 						SendSMS(j + 1, VELOCITY_OVER, rate);
+					}
+					if (!hasVelociBgChanged) {
+						CopyFileA(VELO_ALARM_BG, VELO_BG, FALSE);
+						hasVelociBgChanged = true;
 					}
 					break;
 				}
 			}
 		}
 
-		if (!hasVelociAlarm && !hasTemperAlarm)
+		if (!hasTemperAlarm)
+		{
+			this->OnBnClickedBtStop();
+			// Change Chart Color
+			if (hasTemperBgChanged) {
+				hasTemperBgChanged = false;
+				CopyFileA(TEMPER_NORMAL_BG, TEMPER_BG, FALSE);
+				TraceLog(("setBgImage to normal"));
+			}
+		}
+
+		if (!hasVelociAlarm) 
 		{
 			this->OnBnClickedBtVelocStop();
-			this->OnBnClickedBtStop();
-			m_caseNo++;
+			if (hasVelociBgChanged) {
+				hasVelociBgChanged = false;
+				CopyFileA(VELO_NORMAL_BG, VELO_BG, FALSE);
+			}
 		}
 
 		++m_currentIndex;
@@ -842,37 +901,37 @@ void CfireGuardGraphDlg::drawChart(CChartViewer *viewer)
     // Create an XYChart object 600 x 270 pixels in size, with light grey (f4f4f4) 
     // background, black (000000) border, 1 pixel raised effect, and with a rounded frame.
 	// XYChart *c = new XYChart(600, 270, 0xf4f4f4, 0x000000, 1);
-	 XYChart *c = new XYChart(width, height, 0xf4f4f4, 0x000000, 1);
-    //c->setRoundedFrame(m_extBgColor);
+	XYChart* tChart = new XYChart(width, height, 0xf4f4f4, 0x000000, 1);
+    //tChart->setRoundedFrame(m_extBgColor);
     
     // Set the plotarea at (55, 55) and of size 520 x 185 pixels. Use white (ffffff) 
     // background. Enable both horizontal and vertical grids by setting their colors to 
     // grey (cccccc). Set clipping mode to clip the data lines to the plot area.
-	//c->setPlotArea(55, 55, 520, 185, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
-	c->setPlotArea(55, 65, width-80, height-95, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
-    c->setClipping();
-
+	//tChart->setPlotArea(55, 55, 520, 185, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
+	tChart->setPlotArea(55, 65, width-80, height-95, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
+    tChart->setClipping();
+	tChart->setBgImage(TEMPER_BG);
     // Add a title to the chart using 15 pts Times New Roman Bold Italic font, with a light
     // grey (dddddd) background, black (000000) border, and a glass like raised effect.
-	CString title;
-	title.Format("Temperature Monitoring : [%.2f]", m_max_temperature);
-    c->addTitle(title, "tahoma.ttf", 15)->setBackground(0xdddddd, 0x000000, Chart::glassEffect());
+	//CString title;
+	//title.Format("Temperature Monitoring : [%.2f]", m_max_temperature);
+	//tChart->addTitle(title, "tahoma.ttf", 15)->setBackground(0xdddddd, 0x000000, Chart::glassEffect());
             
     // Set the reference font size of the legend box
-    c->getLegend()->setFontSize(10);
+    tChart->getLegend()->setFontSize(10);
 
     // Configure the y-axis with a 10pts Arial Bold axis title
-    c->yAxis()->setTitle("Temperature(C)", "tahoma.ttf", 10);
+    tChart->yAxis()->setTitle("Temperature(C)", "tahoma.ttf", 10);
 
     // Configure the x-axis to auto-scale with at least 75 pixels between major tick and 
     // 15  pixels between minor ticks. This shows more minor grid lines on the chart.
-    c->xAxis()->setTickDensity(75, 15);
+    tChart->xAxis()->setTickDensity(75, 15);
 
     // Set the axes width to 2 pixels
-    c->xAxis()->setWidth(2);
-    c->yAxis()->setWidth(2);
+    tChart->xAxis()->setWidth(2);
+    tChart->yAxis()->setWidth(2);
 
-	c->yAxis()->setLinearScale(m_ChartViewer.GetMin(), m_ChartViewer.GetMax());  //skpark disable autoScale
+	tChart->yAxis()->setLinearScale(m_ChartViewer.GetMin(), m_ChartViewer.GetMax());  //skpark disable autoScale
 
 
     // Now we add the data to the chart. 
@@ -880,13 +939,13 @@ void CfireGuardGraphDlg::drawChart(CChartViewer *viewer)
     if (firstTime != Chart::NoValue)
     {
         // Set up the x-axis to show the time range in the data buffer
-        c->xAxis()->setDateScale(firstTime, firstTime + DataInterval * sampleSize / 1000);
+        tChart->xAxis()->setDateScale(firstTime, firstTime + DataInterval * sampleSize / 1000);
         
         // Set the x-axis label format
-        c->xAxis()->setLabelFormat("{value|hh:nn:ss}");
+        tChart->xAxis()->setLabelFormat("{value|hh:nn:ss}");
 
         // Create a line layer to plot the lines
-        LineLayer *layer = c->addLineLayer();
+        LineLayer *layer = tChart->addLineLayer();
 
         // The x-coordinates are the timeStamps.
         layer->setXData(DoubleArray(m_timeStamps, sampleSize));
@@ -908,12 +967,12 @@ void CfireGuardGraphDlg::drawChart(CChartViewer *viewer)
 	// Include track line with legend. If the mouse is on the plot area, show the track 
     // line with legend at the mouse position; otherwise, show them for the latest data
     // values (that is, at the rightmost position).
-	trackLineLegend(c, viewer->isMouseOnPlotArea() ? viewer->getPlotAreaMouseX() :
-        c->getPlotArea()->getRightX());
+	trackLineLegend(tChart, viewer->isMouseOnPlotArea() ? viewer->getPlotAreaMouseX() :
+        tChart->getPlotArea()->getRightX());
 
 	// Set the chart image to the WinChartViewer
 	delete viewer->getChart();
-    viewer->setChart(c);
+	viewer->setChart(tChart);
 }
 
 void CfireGuardGraphDlg::drawVeloc(CChartViewer *viewer)
@@ -923,52 +982,53 @@ void CfireGuardGraphDlg::drawVeloc(CChartViewer *viewer)
 	// Create an XYChart object 600 x 270 pixels in size, with light grey (f4f4f4) 
 	// background, black (000000) border, 1 pixel raised effect, and with a rounded frame.
 	// XYChart *c = new XYChart(600, 270, 0xf4f4f4, 0x000000, 1);
-	XYChart *c = new XYChart(width, height, 0xf4f4f4, 0x000000, 1);
+	XYChart* vChart = new XYChart(width, height, 0xf4f4f4, 0x000000, 1);
 	//c->setRoundedFrame(m_extBgColor);
 
 	// Set the plotarea at (55, 55) and of size 520 x 185 pixels. Use white (ffffff) 
 	// background. Enable both horizontal and vertical grids by setting their colors to 
 	// grey (cccccc). Set clipping mode to clip the data lines to the plot area.
 	//c->setPlotArea(55, 55, 520, 185, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
-	c->setPlotArea(55, 65, width - 80, height - 95, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
-	c->setClipping();
+	vChart->setPlotArea(55, 65, width - 80, height - 95, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
+	vChart->setClipping();
+	vChart->setBgImage(VELO_BG);
 
 	// Add a title to the chart using 15 pts Times New Roman Bold Italic font, with a light
 	// grey (dddddd) background, black (000000) border, and a glass like raised effect.
-	CString title;
-	title.Format("UpTrend Monitoring");
+	//CString title;
+	//title.Format("UpTrend Monitoring");
 
-	c->addTitle(title, "tahoma.ttf", 15
-		)->setBackground(0xdddddd, 0x000000, Chart::glassEffect());
+	//vChart->addTitle(title, "tahoma.ttf", 15
+	//	)->setBackground(0xdddddd, 0x000000, Chart::glassEffect());
 
 	// Set the reference font size of the legend box
-	c->getLegend()->setFontSize(10);
+	vChart->getLegend()->setFontSize(10);
 
 	// Configure the y-axis with a 10pts Arial Bold axis title
-	c->yAxis()->setTitle("consecutive rises (1 per 0.25 sec)", "tahoma.ttf", 10);
+	vChart->yAxis()->setTitle("consecutive rises (1 per 0.25 sec)", "tahoma.ttf", 10);
 
 	// Configure the x-axis to auto-scale with at least 75 pixels between major tick and 
 	// 15  pixels between minor ticks. This shows more minor grid lines on the chart.
-	c->xAxis()->setTickDensity(75, 15);
+	vChart->xAxis()->setTickDensity(75, 15);
 
 	// Set the axes width to 2 pixels
-	c->xAxis()->setWidth(2);
-	c->yAxis()->setWidth(2);
+	vChart->xAxis()->setWidth(2);
+	vChart->yAxis()->setWidth(2);
 
-	c->yAxis()->setLinearScale(m_VelocViewer.GetMin(), m_VelocViewer.GetMax());  //skpark disable autoScale
+	vChart->yAxis()->setLinearScale(m_VelocViewer.GetMin(), m_VelocViewer.GetMax());  //skpark disable autoScale
 
 	// Now we add the data to the chart. 
 	double firstTime = m_timeStamps[0];
 	if (firstTime != Chart::NoValue)
 	{
 		// Set up the x-axis to show the time range in the data buffer
-		c->xAxis()->setDateScale(firstTime, firstTime + DataInterval * sampleSize / 1000);
+		vChart->xAxis()->setDateScale(firstTime, firstTime + DataInterval * sampleSize / 1000);
 
 		// Set the x-axis label format
-		c->xAxis()->setLabelFormat("{value|hh:nn:ss}");
+		vChart->xAxis()->setLabelFormat("{value|hh:nn:ss}");
 
 		// Create a line layer to plot the lines
-		LineLayer *layer = c->addLineLayer();
+		LineLayer *layer = vChart->addLineLayer();
 
 		// The x-coordinates are the timeStamps.
 		layer->setXData(DoubleArray(m_timeStamps, sampleSize));
@@ -991,12 +1051,12 @@ void CfireGuardGraphDlg::drawVeloc(CChartViewer *viewer)
 	// Include track line with legend. If the mouse is on the plot area, show the track 
 	// line with legend at the mouse position; otherwise, show them for the latest data
 	// values (that is, at the rightmost position).
-	trackLineLegend(c, viewer->isMouseOnPlotArea() ? viewer->getPlotAreaMouseX() :
-		c->getPlotArea()->getRightX());
+	trackLineLegend(vChart, viewer->isMouseOnPlotArea() ? viewer->getPlotAreaMouseX() :
+		vChart->getPlotArea()->getRightX());
 
 	// Set the chart image to the WinChartViewer
 	delete viewer->getChart();
-	viewer->setChart(c);
+	viewer->setChart(vChart);
 }
 
 void CfireGuardGraphDlg::drawSlope(CChartViewer *viewer)
@@ -1006,49 +1066,50 @@ void CfireGuardGraphDlg::drawSlope(CChartViewer *viewer)
 	// Create an XYChart object 600 x 270 pixels in size, with light grey (f4f4f4) 
 	// background, black (000000) border, 1 pixel raised effect, and with a rounded frame.
 	// XYChart *c = new XYChart(600, 270, 0xf4f4f4, 0x000000, 1);
-	XYChart *c = new XYChart(width, height, 0xf4f4f4, 0x000000, 1);
-	//c->setRoundedFrame(m_extBgColor);
+	XYChart* sChart = new XYChart(width, height, 0xf4f4f4, 0x000000, 1);
+	//sChart->setRoundedFrame(m_extBgColor);
 
 	// Set the plotarea at (55, 55) and of size 520 x 185 pixels. Use white (ffffff) 
 	// background. Enable both horizontal and vertical grids by setting their colors to 
 	// grey (cccccc). Set clipping mode to clip the data lines to the plot area.
-	//c->setPlotArea(55, 55, 520, 185, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
-	c->setPlotArea(55, 65, width - 80, height - 95, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
-	c->setClipping();
+	//sChart->setPlotArea(55, 55, 520, 185, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
+	sChart->setPlotArea(55, 65, width - 80, height - 95, 0xffffff, -1, -1, 0xcccccc, 0xcccccc);
+	sChart->setClipping();
+	sChart->setBgImage(SLOPE_BG);
 
 	// Add a title to the chart using 15 pts Times New Roman Bold Italic font, with a light
 	// grey (dddddd) background, black (000000) border, and a glass like raised effect.
-	c->addTitle("Change rate Monitoring", "tahoma.ttf", 15
-		)->setBackground(0xdddddd, 0x000000, Chart::glassEffect());
+	//sChart->addTitle("Change rate Monitoring", "tahoma.ttf", 15
+	//	)->setBackground(0xdddddd, 0x000000, Chart::glassEffect());
 
 	// Set the reference font size of the legend box
-	c->getLegend()->setFontSize(10);
+	sChart->getLegend()->setFontSize(10);
 
 	// Configure the y-axis with a 10pts Arial Bold axis title
-	c->yAxis()->setTitle("Inclination", "tahoma.ttf", 10);
+	sChart->yAxis()->setTitle("Inclination", "tahoma.ttf", 10);
 
 	// Configure the x-axis to auto-scale with at least 75 pixels between major tick and 
 	// 15  pixels between minor ticks. This shows more minor grid lines on the chart.
-	c->xAxis()->setTickDensity(75, 15);
+	sChart->xAxis()->setTickDensity(75, 15);
 
 	// Set the axes width to 2 pixels
-	c->xAxis()->setWidth(2);
-	c->yAxis()->setWidth(2);
+	sChart->xAxis()->setWidth(2);
+	sChart->yAxis()->setWidth(2);
 
-	//c->yAxis()->setLinearScale(m_SlopeViewer.GetMin(), m_SlopeViewer.GetMax());  //skpark disable autoScale
+	//sChart->yAxis()->setLinearScale(m_SlopeViewer.GetMin(), m_SlopeViewer.GetMax());  //skpark disable autoScale
 
 	// Now we add the data to the chart. 
 	double firstTime = m_timeStamps[0];
 	if (firstTime != Chart::NoValue)
 	{
 		// Set up the x-axis to show the time range in the data buffer
-		c->xAxis()->setDateScale(firstTime, firstTime + DataInterval * sampleSize / 1000);
+		sChart->xAxis()->setDateScale(firstTime, firstTime + DataInterval * sampleSize / 1000);
 
 		// Set the x-axis label format
-		c->xAxis()->setLabelFormat("{value|hh:nn:ss}");
+		sChart->xAxis()->setLabelFormat("{value|hh:nn:ss}");
 
 		// Create a line layer to plot the lines
-		LineLayer *layer = c->addLineLayer();
+		LineLayer *layer = sChart->addLineLayer();
 
 		// The x-coordinates are the timeStamps.
 		layer->setXData(DoubleArray(m_timeStamps, sampleSize));
@@ -1070,12 +1131,12 @@ void CfireGuardGraphDlg::drawSlope(CChartViewer *viewer)
 	// Include track line with legend. If the mouse is on the plot area, show the track 
 	// line with legend at the mouse position; otherwise, show them for the latest data
 	// values (that is, at the rightmost position).
-	trackLineLegend(c, viewer->isMouseOnPlotArea() ? viewer->getPlotAreaMouseX() :
-		c->getPlotArea()->getRightX());
+	trackLineLegend(sChart, viewer->isMouseOnPlotArea() ? viewer->getPlotAreaMouseX() :
+		sChart->getPlotArea()->getRightX());
 
 	// Set the chart image to the WinChartViewer
 	delete viewer->getChart();
-	viewer->setChart(c);
+	viewer->setChart(sChart);
 }
 
 // Draw the track line with legend
@@ -1386,7 +1447,7 @@ double  CfireGuardGraphDlg::Formula(int cameraId, int currentIndex, int frequenc
 		m_slopeSeries[cameraId][currentIndex] = slope;
 	}
 
-	TraceLog(("startIdx=%d,endIdx=%d", startIdx, endIdx));
+	//TraceLog(("startIdx=%d,endIdx=%d", startIdx, endIdx));
 	
 	// slope 값을 모두 더한다.
 	double retval = 0.0f;
@@ -1403,7 +1464,7 @@ void CfireGuardGraphDlg::OnBnClickedCheckAlarm()
 	{
 		m_isStopAlarm = true;
 		m_temperThreshold->OnStop();
-		m_velociThreshold->OnStop();
+		//m_velociThreshold->OnStop();
 		//m_slopeThreshold->OnStop();
 	}
 	else
@@ -1417,6 +1478,29 @@ void CfireGuardGraphDlg::OnBnClickedCheckAlarm()
 	CString buf;
 	buf.Format("%d", m_isStopAlarm);
 	WritePrivateProfileString("FIRE_WATCH", "CHECK_DONT_ALARM",  buf, iniPath);
+
+}
+
+void CfireGuardGraphDlg::OnBnClickedCheckTrend()
+{
+	if (m_checkStopTrend.GetCheck())
+	{
+		m_isStopTrend = true;
+		//m_temperThreshold->OnStop();
+		m_velociThreshold->OnStop();
+		//m_slopeThreshold->OnStop();
+	}
+	else
+	{
+		m_isStopTrend = false;
+	}
+
+	CString iniPath = UBC_CONFIG_PATH;
+	iniPath += UBCBRW_INI;
+
+	CString buf;
+	buf.Format("%d", m_isStopTrend);
+	WritePrivateProfileString("FIRE_WATCH", "CHECK_DONT_TREND", buf, iniPath);
 
 }
 
@@ -1469,13 +1553,6 @@ int CfireGuardGraphDlg::SendSMS(int cameraId, int type, float threshold)
 	{
 		return 0;
 	}
-
-	static ULONG prev_no = 100;
-	if (m_caseNo == prev_no)
-	{
-		return 0;
-	}
-	prev_no = m_caseNo;
 
 	int count = 0;
 	for (int i = 0; i < MAX_DATA; i++)

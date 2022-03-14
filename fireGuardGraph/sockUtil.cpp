@@ -202,7 +202,7 @@ sockUtil::talk(SOCKET socket_fd, const char* input,const char* classCode, boolea
 	}else{
 		this->addHeader(buf.c_str(),classCode,interactive,value);
 	}
-	TraceLog(("talk(%s)", value.c_str()));
+	//TraceLog(("talk(%s)", value.c_str()));
 	int msg_size;
 	if ((msg_size = send(socket_fd, value.c_str(), (int)value.size(), 0)) <= 0) {
 		TraceLog(("Can't send to server\n"));

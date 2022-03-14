@@ -51,6 +51,10 @@ public:
 	CString  m_minName;
 
 	bool		hasAleadyPlayed() { return m_isAniPlay;  }
+
+
+
+
 };
 
 
@@ -83,6 +87,11 @@ public:
 	CChartViewer m_ChartViewer;
 	CChartViewer m_VelocViewer;
 	CChartViewer m_SlopeViewer;
+
+	//XYChart *tChart;
+	//XYChart *vChart;
+	//XYChart *sChart;
+
 
 	CButton	m_RunPB;
 	CSpinButtonCtrl	m_AlarmSpin;
@@ -190,9 +199,13 @@ public:
 	double  Formula(int cameraId, int currentIndex, int frequency);
 
 	CButton m_checkStopAlarm;
+	CButton m_checkStopTrend;
 	afx_msg void OnBnClickedCheckAlarm();
+	afx_msg void OnBnClickedCheckTrend();
 
 	bool m_isStopAlarm;
+	bool m_isStopTrend;
+
 	CButton m_btSMS;
 	afx_msg void OnBnClickedButtonSmsMgr();
 	CButton m_checkSMS;
@@ -205,8 +218,6 @@ public:
 	bool SendNaverSMS(const char* serviceUrl, const char* title, const char* content, const char* imgUrl, const char* phoneNo);
 
 	afx_msg void OnBnClickedCheckSendMsg();
-
-	ULONG  m_caseNo;
 
 	CStatic m_stCounter;
 	double m_max_temperature;

@@ -54,10 +54,10 @@ void preSocketHandler::destroy()
 }
 void preSocketHandler::push(const char* recvMsg)
 {
-	TraceLog(("preSocketHandler::push(%s)", recvMsg));
+	//TraceLog(("preSocketHandler::push(%s)", recvMsg));
 	ciGuard aGuard(_listLock);
 	_list.push_back(recvMsg);
-	TraceLog(("preSocketHandler::push(%s) end", recvMsg));
+	//TraceLog(("preSocketHandler::push(%s) end", recvMsg));
 }
 
 UINT
@@ -223,7 +223,7 @@ preSocketSession::destroy() {
 bool 
 preSocketSession::ProcessCmd(const char* recvMsg)
 {
-	TraceLog(("ProcessCmd(%s)", recvMsg));
+	//TraceLog(("ProcessCmd(%s)", recvMsg));
 	//stream.Format("%s/%.2f/%d", data.serialNo, data.temperature, data.level);
 
 	CString recvStr = recvMsg;
@@ -276,7 +276,7 @@ void preSocketSession::SetData(LPCTSTR serialNo, double temper, int dType)
 
 	if (IsRealData(serialNo))
 	{
-		TraceLog(("SetData(%s=%.2f)", serialNo, temper));
+		//TraceLog(("SetData(%s=%.2f)", serialNo, temper));
 		_logger.SaveLog(serialNo, temper);
 	}
 	ciGuard aGuard(_mapLock);

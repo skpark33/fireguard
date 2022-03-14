@@ -22,6 +22,7 @@
 #define IDC_EDIT_TELNO1                 1005
 #define IDC_CHECK_SEND_MSG              1006
 #define IDC_EDIT_NAME1                  1007
+#define IDC_CHECK_TREND                 1007
 #define IDC_STATIC_NAME2                1008
 #define IDC_FreezePB                    1009
 #define IDC_EDIT_TELNO2                 1009
@@ -78,6 +79,7 @@
 #define IDC_RADIO4                      1042
 #define IDC_CHECK_ALL2                  1042
 #define IDC_CHECK_VELOCITY              1042
+#define IDC_EDIT_VELOC_MAX2             1042
 #define IDC_RADIO5                      1043
 #define IDC_BUTTON_VELOC_APPLY          1043
 #define IDC_RADIO6                      1044

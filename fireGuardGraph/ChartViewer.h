@@ -229,6 +229,7 @@ private:
 
 public:
 	CStaticHelper();
+	~CStaticHelper();
 	
 	void onPaint(CStatic *self);
 	void displayChart(CStatic *self, BaseChart *c);
@@ -239,6 +240,17 @@ public:
 	float m_max;
 	int m_type;
 	void DrawThreshold(HDC hdc, CStatic* self);
+
+	//void WriteSingleLine(LPCTSTR text,
+	//	CDC* pDc,
+	//	CStatic* self,
+	//	CFont& targetFont,
+	//	COLORREF color,
+	//	int posY,
+	//	int height
+	//	);
+	//void InitFont(CFont& targetFont, LPCTSTR fontName, int fontSize, float fontWidth=1);
+	//CFont m_normalFont1;
 
 };
 
