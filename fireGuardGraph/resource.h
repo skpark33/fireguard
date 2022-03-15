@@ -66,7 +66,9 @@
 #define IDC_BUTTON_MAX_APPLY            1035
 #define IDC_EDIT_THRESHOLD_MIN          1036
 #define IDC_CHECK_ALL1                  1037
+#define IDC_DATETIMEPICKER1             1037
 #define IDC_ANIMATE1                    1038
+#define IDC_CHECK_DATE                  1038
 #define IDC_RADIO1                      1039
 #define IDC_SHOW_LOG2                   1039
 #define IDC_OPEN_FOLDER                 1039
@@ -88,7 +90,10 @@
 #define IDC_VELOC_ANIMATE               1045
 #define IDC_RADIO8                      1046
 #define IDC_EDIT_VELOC_RANGE            1047
+#define IDC_RADIO9                      1047
 #define IDC_EDIT_VELOC_DEVI             1048
+#define IDC_RADIO10                     1048
+#define IDC_RADIO11                     1049
 
 // Next default values for new objects
 // 
@@ -96,7 +101,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1037
+#define _APS_NEXT_CONTROL_VALUE         1048
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

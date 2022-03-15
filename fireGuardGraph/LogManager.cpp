@@ -102,7 +102,6 @@ void LogManager::CloseLog()
 		_dailyLog = 0;
 	}
 }
-
 void LogManager::SaveLog(LPCTSTR serialNo, double temper)
 {
 	CTime now = CTime::GetCurrentTime();

@@ -185,7 +185,7 @@ public:
 	afx_msg void OnBnClickedBtStop();
 	afx_msg void OnBnClickedShowLog();
 
-	void OpenLog(int cameraIdx);
+	void OpenLog(int cameraIdx, LPCTSTR prefix, LPCTSTR dateTime);
 
 	afx_msg void OnBnClickedOpenFolder();
 	afx_msg void OnFrequencyTimer();

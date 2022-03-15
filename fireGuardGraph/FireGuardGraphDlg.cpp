@@ -1293,13 +1293,16 @@ void CfireGuardGraphDlg::OnBnClickedShowLog()
 
 	if (dlg.DoModal() == IDOK)
 	{
-		OpenLog(dlg.checked);
+		OpenLog(dlg.checked, dlg.prefix, dlg.dateTime);
 	}
 
 }
-void CfireGuardGraphDlg::OpenLog(int cameraIdx)
+void CfireGuardGraphDlg::OpenLog(int cameraIdx, LPCTSTR prefix, LPCTSTR dateTime)
 {
-	CString filter = "fireGuardGraph Log Files (*.csv)|*.csv||";
+
+
+	CString filter  ;
+	filter.Format("fireGuardGraph Log Files (%s%s*.csv)|%s%s*.csv||", prefix, dateTime, prefix,dateTime);
 
 	CFileDialog dlg(TRUE, NULL, UBC_UPLOADER_PATH, OFN_FILEMUSTEXIST | OFN_HIDEREADONLY, filter, this);
 	if (dlg.DoModal() == IDOK)

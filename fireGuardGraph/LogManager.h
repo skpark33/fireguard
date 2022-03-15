@@ -40,6 +40,7 @@ public:
 	void CloseLog();
 	
 	void SetPrefix(LPCTSTR p) { _prefix = p;}
+	void SetFullPath(LPCTSTR f) { _logFullPath.Format("%s%s", UBC_UPLOADER_PATH, f); }
 
 	void ClearLog();
 

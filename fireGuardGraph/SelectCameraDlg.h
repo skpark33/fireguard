@@ -1,5 +1,6 @@
 #pragma once
 #include "resource.h"
+#include "afxdtctl.h"
 
 
 // CSelectCameraDlg 대화 상자입니다.
@@ -26,6 +27,11 @@ public:
 
 	bool  enabled[MAX_CAMERA];
 	int checked;
+	CString prefix;
+	CString dateTime;
+
+	CButton m_radioAll;
+	CButton m_checkDate;
 
 	afx_msg void OnBnClickedRadio1();
 	afx_msg void OnBnClickedRadio2();
@@ -35,4 +41,12 @@ public:
 	afx_msg void OnBnClickedRadio6();
 	afx_msg void OnBnClickedRadio7();
 	afx_msg void OnBnClickedRadio8();
+	
+	afx_msg void OnBnClickedRadio9();
+	afx_msg void OnBnClickedRadio10();
+	afx_msg void OnBnClickedRadio11();
+
+	afx_msg void  OnBnClickedDate();
+	afx_msg void OnBnClickedOk();
+	CDateTimeCtrl m_dateTimePicker;
 };
