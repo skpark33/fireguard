@@ -23,7 +23,7 @@ protected:
 class LogManager
 {
 public:
-	LogManager();
+	LogManager(LPCTSTR prefix = "fireGuardGraph");
 	virtual ~LogManager();
 
 	void destroy();
@@ -39,7 +39,7 @@ public:
 
 	void CloseLog();
 	
-	void SetFullPath(LPCTSTR filename) { _logFullPath.Format("%s%s", UBC_UPLOADER_PATH, filename);}
+	void SetPrefix(LPCTSTR p) { _prefix = p;}
 
 	void ClearLog();
 
@@ -49,6 +49,8 @@ public:
 	int _hour;
 	int _min;
 	int _sec;
+
+	CString _prefix;
 
 protected:
 

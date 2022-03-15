@@ -11,6 +11,7 @@
 #include "afxwin.h"
 #include "LogManager.h"
 #include "SMSManagerDlg.h"
+#include "LogManager.h"
 
 class preSocketSession;
 
@@ -157,6 +158,9 @@ private:
 public:
 	CFont*	m_font;
 	preSocketSession* m_session;
+
+	LogManager*		m_AlarmLogger;
+	LogManager*		m_TrendLogger;
 
 	Gdiplus::GdiplusStartupInput m_gdiplusStartupInput;
 	ULONG_PTR m_gdiplusToken;

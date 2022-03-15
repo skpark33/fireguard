@@ -8,10 +8,11 @@
 
 #define  HEADER  "Event time, CameraId, Temperature\n"
 
-LogManager::LogManager()
+LogManager::LogManager(LPCTSTR prefix)
 	: _dailyLog(NULL)
 	, _dataArray(NULL)
 	, _timeArray(NULL)
+	, _prefix(prefix)
 {
 	_year = _month = _day = _hour = _min = _sec = -1;
 	_cameraIdx = 0;
@@ -45,11 +46,12 @@ bool LogManager::OpenLogForWrite(LPCTSTR day, LPCTSTR sec)
 			fclose(_dailyLog);
 			_dailyLog = 0;
 		}
+		CString mode = "w";
 		if (IsLocalExist(_logFullPath))
 		{
-			_logFullPath.Format("%sfireGuardGraph%s_%s.csv", UBC_UPLOADER_PATH, day, sec);
+			mode = "a";
 		}
-		_dailyLog = _fsopen(_logFullPath, "w", _SH_DENYNO);
+		_dailyLog = _fsopen(_logFullPath, mode, _SH_DENYNO);
 		if (_dailyLog)
 		{
 			prevFile = _logFullPath;
@@ -111,7 +113,7 @@ void LogManager::SaveLog(LPCTSTR serialNo, double temper)
 
 	if (_logFullPath.IsEmpty())
 	{
-		_logFullPath.Format("%sfireGuardGraph%s.csv", UBC_UPLOADER_PATH, day);
+		_logFullPath.Format("%s%s%s.csv", UBC_UPLOADER_PATH, _prefix, day);
 	}
 
 	OpenLogForWrite(day,sec);

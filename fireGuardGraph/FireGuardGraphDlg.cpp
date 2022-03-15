@@ -248,6 +248,9 @@ CfireGuardGraphDlg::CfireGuardGraphDlg(CWnd* pParent /*=NULL*/)
 	, m_max_temperature(-999.0f)
 
 {
+	m_AlarmLogger = new LogManager("Alarm");
+	m_TrendLogger = new LogManager("Trend");
+
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_updatePeriod = 250;
 
@@ -808,6 +811,7 @@ void CfireGuardGraphDlg::OnDataTimer()
 							TraceLog(("setBgImage to alarm"));
 							hasTemperBgChanged = true;
 					}
+					m_AlarmLogger->SaveLog(idStr, value);
 					break;
 				}
 			}
@@ -834,6 +838,9 @@ void CfireGuardGraphDlg::OnDataTimer()
 						CopyFileA(VELO_ALARM_BG, VELO_BG, FALSE);
 						hasVelociBgChanged = true;
 					}
+					CString idStr;
+					idStr.Format("%d", j + 1);
+					m_TrendLogger->SaveLog(idStr, rate);
 					break;
 				}
 			}
@@ -1257,6 +1264,9 @@ void CfireGuardGraphDlg::OnDestroy()
 	delete m_temperThreshold;
 	delete m_velociThreshold;
 	delete m_slopeThreshold;
+
+	delete m_AlarmLogger;
+	delete m_TrendLogger;
 
 	CDialog::OnDestroy();
 
