@@ -233,7 +233,7 @@ public:
 	void onPaint(CStatic *self);
 	void displayChart(CStatic *self, BaseChart *c);
 
-	void DrawThreshold(HDC hdc, CStatic *self);
+	void DrawThreshold(HDC hdc, CStatic *self); //skpark
 
 };
 

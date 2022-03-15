@@ -1859,7 +1859,6 @@ void CStaticHelper::DrawThreshold(HDC hdc, CStatic *self)
 	gdi.DrawLine(&linePen, from3, to3);
 
 
-
 	// 그래프 영역은  height 에서 위에서 65 떨어져 있고,  아래에서 30 떨어져 있다고 추정된다.
 	//  width 는  좌에서 55 떨어져 있고,  640 의 길이이다.
 	// 아래 두 선을 그어 보므로 알수 있다.
