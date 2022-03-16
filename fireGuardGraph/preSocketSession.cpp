@@ -105,6 +105,14 @@ preSocketSession::preSocketSession(int port)
 	: _isAlive(true), _serverFd(-1), _serverPort(port)
 {
 	TraceLog( ("preSocketSession()"));
+
+	CString iniPath = UBC_CONFIG_PATH;
+	iniPath += UBCBRW_INI;
+	char buf[2048];
+	memset(buf, 0x00, 2048);
+	GetPrivateProfileString("FIRE_WATCH", "MONITOR_SEC", "1", buf, 2048, iniPath);
+	_monitorSec = atoi(buf);
+
 }
 
 preSocketSession::~preSocketSession() {
@@ -279,19 +287,26 @@ void preSocketSession::SetData(LPCTSTR serialNo, double temper, int dType)
 		//TraceLog(("SetData(%s=%.2f)", serialNo, temper));
 		_logger.SaveLog(serialNo, temper);
 	}
+	TEMPER_DATA data;
+	data.now = time(NULL);
 	ciGuard aGuard(_mapLock);
 	if (dType == VELOCITY_OVER)
 	{ 
-		_velociMap[serialNo] = temper;
+		data.temper = temper;
+		_velociMap[serialNo] = data;
 	}
 	else
 	{
-		_temperMap[serialNo] = temper;
+		data.temper = temper;
+		_temperMap[serialNo] = data;
 	}
 }
 double preSocketSession::GetData(LPCTSTR serialNo, int dType)
 {
 	ciGuard aGuard(_mapLock);
+
+	time_t now = time(NULL);
+
 	if (dType == VELOCITY_OVER)
 	{
 		TEMPER_MAP::iterator itr = _velociMap.find(serialNo);
@@ -299,7 +314,7 @@ double preSocketSession::GetData(LPCTSTR serialNo, int dType)
 		{
 			return _NO_VALUE_;
 		}
-		return itr->second;
+		return itr->second.temper;
 	}
 
 	TEMPER_MAP::iterator itr = _temperMap.find(serialNo);
@@ -307,7 +322,11 @@ double preSocketSession::GetData(LPCTSTR serialNo, int dType)
 	{
 		return _NO_VALUE_;
 	}
-	return itr->second;
+	if (itr->second.now < now - 2 * _monitorSec) {
+		TraceLog(("Data stopped from %s-------------------------------", serialNo));
+		return _NO_VALUE_;
+	}
+	return itr->second.temper;
 
 }
 

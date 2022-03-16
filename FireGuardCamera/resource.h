@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by FireGuardCamera.rc
+// Microsoft Visual C++에서 생성한 포함 파일입니다.
+// FireGuardCamera.rc에서 사용되고 있습니다.
 //
 #define IDM_ABOUTBOX                    0x0010
 #define IDD_ABOUTBOX                    100
@@ -158,6 +158,8 @@
 #define IDC_BUTTON_PPPOE                1036
 #define IDC_EDIT_WRITE                  1037
 #define IDC_COMBO_VIDEO_OUT_TYPE        1037
+#define IDC_BUTTON_SNAPSHOT2            1037
+#define IDC_BUTTON_LOG_CLEAR            1037
 #define IDC_BUTTON_WRITE                1038
 #define IDC_BUTTON_VIDEO_OUT_MODIFY     1038
 #define IDC_BUTTON_READ                 1039

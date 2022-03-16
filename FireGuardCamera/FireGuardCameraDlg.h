@@ -51,6 +51,7 @@ public:
 	bool m_initDone;
 	bool m_stopPolling;
 	afx_msg void OnClose();
+	CString m_msgText;
 	//skpark in your area end
 
 	bool m_bInitTriggerServer;
@@ -112,4 +113,5 @@ public:
 	afx_msg void OnBnClickedButtonDdns();
 	afx_msg void OnBnClickedButtonSnmp();
 	afx_msg void OnBnClickedButtonPppoe();
+	afx_msg void OnBnClickedButtonLogClear();
 };

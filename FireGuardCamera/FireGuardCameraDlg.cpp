@@ -166,6 +166,7 @@ BEGIN_MESSAGE_MAP(CFireGuardCameraDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_DDNS, &CFireGuardCameraDlg::OnBnClickedButtonDdns)
 	ON_BN_CLICKED(IDC_BUTTON_SNMP, &CFireGuardCameraDlg::OnBnClickedButtonSnmp)
 	ON_BN_CLICKED(IDC_BUTTON_PPPOE, &CFireGuardCameraDlg::OnBnClickedButtonPppoe)
+	ON_BN_CLICKED(IDC_BUTTON_LOG_CLEAR, &CFireGuardCameraDlg::OnBnClickedButtonLogClear)
 END_MESSAGE_MAP()
 
 
@@ -399,7 +400,7 @@ void CFireGuardCameraDlg::StartDiscovery()
 // skpark in your area
 void CFireGuardCameraDlg::Polling()
 {
-	CString szText;
+	
 	int loop = 0;
 	while (!m_stopPolling) {
 		if (m_initDone) {
@@ -434,16 +435,16 @@ void CFireGuardCameraDlg::Polling()
 
 						FireProcess::getInstance()->Push(temperature, m_stTemp[i].ThermalFullTemp.bAlarmOn, strIndex);
 
-						szText.Format("%s\r\nValid=%s, Alarm=%s, Center=%s, Min=%s, Max=%s, Avg=%s", 
-							szText, strValid, strAlarm, strCenter, strMin, strMax, strAvg);
+						m_msgText.Format("%s\r\nValid=%s, Alarm=%s, Center=%s, Min=%s, Max=%s, Avg=%s",
+							m_msgText, strValid, strAlarm, strCenter, strMin, strMax, strAvg);
 
-						GetDlgItem(IDC_EDIT_CAMERA_INFO)->SetWindowText(szText);
+						GetDlgItem(IDC_EDIT_CAMERA_INFO)->SetWindowText(m_msgText);
 					}
 				}
 			}
 			if (loop == 14) {
 				loop = 0;
-				szText = "";
+				m_msgText = "";
 			}
 			loop++;
 		}
@@ -2052,10 +2053,9 @@ void CFireGuardCameraDlg::OnBnClickedButtonIpManager()
 	{
 		TraceLog(("ShellExecute Error=%d", nRet));
 	}
-
-
-
 }
-
-
-
+void CFireGuardCameraDlg::OnBnClickedButtonLogClear()
+{
+	m_msgText = "";
+	GetDlgItem(IDC_EDIT_CAMERA_INFO)->SetWindowText("");
+}

@@ -65,6 +65,7 @@ protected:
 	bool _isAlive;
 	int _serverFd;
 	int _serverPort;
+	int _monitorSec;
 
 	CCriticalSection	_mapLock;
 	TEMPER_MAP     _temperMap;

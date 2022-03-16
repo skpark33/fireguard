@@ -48,7 +48,7 @@ FireProcess::FireProcess()
 	GetPrivateProfileString("FIRE_WATCH", "PWD", "coxcox123", buf, 2048, iniPath);
 	pwd = buf;
 
-	GetPrivateProfileString("FIRE_WATCH", "MONITOR_SEC", "5", buf, 2048, iniPath);
+	GetPrivateProfileString("FIRE_WATCH", "MONITOR_SEC", "1", buf, 2048, iniPath);
 	monitor_sec = atoi(buf);
 
 

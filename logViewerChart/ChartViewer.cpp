@@ -1800,6 +1800,8 @@ void CStaticHelper::onPaint(CStatic *self)
 
 	dcMem.SelectObject(oldCbmp);
 	cbmp.Detach();
+
+	DrawThreshold(dc, self);
 }
 
 void CStaticHelper::displayChart(CStatic *self, BaseChart *c)

@@ -90,6 +90,8 @@ BOOL CLogViewerChartDlg::OnInitDialog()
 	loadButtonIcon(IDC_ZoomOutPB, IDI_ZoomOutPB, 100, 20);
 	loadButtonIcon(IDC_SavePB, IDI_SavePB, 100, 20);
 
+	GetDlgItem(IDC_SavePB)->ShowWindow(SW_HIDE);
+	
 	Gdiplus::GdiplusStartup(&m_gdiplusToken, &m_gdiplusStartupInput, NULL);
 
 	DrawAll();
@@ -339,8 +341,8 @@ void CLogViewerChartDlg::drawChart(CChartViewer *viewer)
 
     // Add a title box using dark grey (0x333333) 15pt Arial Bold font
 	CString title;
-	title.Format("Camera%d Log (%s)", _cameraIdx, _logFile);
-    c->addTitle(title, "arialbd.ttf", 15, 0x333333);
+	title.Format("Camera%d (%s)", _cameraIdx, _logFile);
+    c->addTitle(title, "tahoma.ttf", 15, 0x333333);
  
  	// Set legend icon style to use line style icon, sized for 10pt font
     c->getLegend()->setLineStyleKey();
@@ -349,12 +351,16 @@ void CLogViewerChartDlg::drawChart(CChartViewer *viewer)
     // Set the x and y axis stems to transparent and the label font to 10pt Arial
     c->xAxis()->setColors(Chart::Transparent);
     c->yAxis()->setColors(Chart::Transparent);
-    c->xAxis()->setLabelStyle("arial.ttf", 10);
-    c->yAxis()->setLabelStyle("arial.ttf", 10);
+    c->xAxis()->setLabelStyle("tahoma.ttf", 10);
+    c->yAxis()->setLabelStyle("tahoma.ttf", 10);
     
     // Add axis title using 10pt Arial Bold font
-    c->yAxis()->setTitle("Ionic Temperature (C)", "arialbd.ttf", 10);
-
+	if (_logFile.Mid(0, strlen("Trend")) == "Trend") {
+		c->yAxis()->setTitle("Consecutive rises", "tahoma.ttf", 10);
+	}
+	else{
+		c->yAxis()->setTitle("Temperature (C)", "tahoma.ttf", 10);
+	}
     ///////////////////////////////////////////////////////////////////////////////////////
     // Add data to chart
     ///////////////////////////////////////////////////////////////////////////////////////

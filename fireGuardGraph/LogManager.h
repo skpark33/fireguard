@@ -4,8 +4,16 @@
 #include <memblock.h>
 
 ////////////////////
+
+class TEMPER_DATA
+{
+public:
+	double temper;
+	time_t now;
+};
+
 typedef  std::list<CString>		CiStringList;
-typedef  std::map<CString, double>		TEMPER_MAP;
+typedef  std::map<CString, TEMPER_DATA>		TEMPER_MAP;
 typedef  std::map<int, DoubleArray*>		LOG_DATA_MAP;
 
 #define _NO_VALUE_		-100.0f
