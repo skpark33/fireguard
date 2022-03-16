@@ -240,6 +240,7 @@ public:
 	float m_max;
 	int m_type;
 	void DrawThreshold(HDC hdc, CStatic* self);
+	void LicenseCheck(CPaintDC* pDC, HDC hdc, CStatic* self);
 
 	//void WriteSingleLine(LPCTSTR text,
 	//	CDC* pDc,

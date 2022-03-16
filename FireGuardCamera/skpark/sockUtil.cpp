@@ -85,7 +85,7 @@ sockUtil::dialog(const char* ipAddress,
 				 const char* input, 
 				 string& output)
 {
-	TraceLog(("dialog(%s,%d,%s)\n", ipAddress, portNo,input));
+	//TraceLog(("dialog(%s,%d,%s)\n", ipAddress, portNo,input));
 
 	SOCKET socket_fd;		
 	if ((socket_fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
@@ -134,7 +134,7 @@ sockUtil::dialog(const char* ipAddress,
 				 string& output,
 				 string& errMsg)
 {
-	TraceLog(("dialog(%s,%d,%s)\n", ipAddress, portNo,input));
+	//TraceLog(("dialog(%s,%d,%s)\n", ipAddress, portNo,input));
 
 	char err_buf[256];
 	memset(err_buf,0x00,256);
@@ -158,25 +158,25 @@ sockUtil::dialog(const char* ipAddress,
 		errMsg=err_buf;
 		return false;
 	}
-	TraceLog(("socket connect (%s,%d)\n", ipAddress, portNo));
+	//TraceLog(("socket connect (%s,%d)\n", ipAddress, portNo));
 
-	TraceLog(("send start (%s)\n", input));
+	//TraceLog(("send start (%s)\n", input));
 	if(!talk(socket_fd,input,CLASS_REGACY,false)){
 		sprintf(err_buf,"Can't send to server.[%s]\n", ipAddress);
 		closesocket(socket_fd);
 		errMsg=err_buf;
 		return false;
 	}
-	TraceLog(("send end\n"));
+	//TraceLog(("send end\n"));
 
-	TraceLog(("receive start ()\n"));
+	//TraceLog(("receive start ()\n"));
 	if(!hear(socket_fd,waitTime,output)){
 		sprintf(err_buf,"Can't receive from server.[%s]\n", ipAddress);
 		closesocket(socket_fd);
 		errMsg=err_buf;
 		return false;
 	}
-	TraceLog(("receive end\n"));
+	//TraceLog(("receive end\n"));
 
 	closesocket(socket_fd);	
 	return true;

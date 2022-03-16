@@ -176,6 +176,7 @@ BOOL CFireGuardCameraDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+	
 	// Add "About..." menu item to system menu.
 
 	// IDM_ABOUTBOX must be in the system command range.
@@ -227,6 +228,16 @@ BOOL CFireGuardCameraDlg::OnInitDialog()
 	OnBnClickedButtonDiscovery();  //skpark in your area
 	m_hThread_Polling = CreateThread(NULL, 0, ThreadProc_Polling, this, 0, &m_dwThreadID_Polling); //skpark in your area
 
+	HWND desktop = ::GetDesktopWindow();
+	CRect rcDesk, rcWindow;
+	::GetWindowRect(desktop, &rcDesk);
+	::GetWindowRect(this->m_hWnd,  &rcWindow);
+
+	TraceLog(("Monitor Size = %d : %d ", rcDesk.Width(), rcDesk.Height()));
+	TraceLog(("Windows Size = %d : %d ", rcWindow.Width(), rcWindow.Height()));  //621x590
+
+	::SetWindowPos(this->m_hWnd, HWND_TOP, 10, 10, -1, -1, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+	
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -426,12 +437,12 @@ void CFireGuardCameraDlg::Polling()
 						strMax.Format(_T("%.2f"), temperature);
 						strAvg.Format(_T("%.2f"), m_stTemp[i].ThermalFullTemp.fAvgTempValue);
 
-						TraceLog(("strValid=%s", strValid));
-						TraceLog(("strAlarm=%s", strAlarm));
-						TraceLog(("strCenter=%s", strCenter));
-						TraceLog(("strMin=%s", strMin));
-						TraceLog(("strMax=%s", strMax));
-						TraceLog(("strAvg=%s", strAvg));
+						//TraceLog(("strValid=%s", strValid));
+						//TraceLog(("strAlarm=%s", strAlarm));
+						//TraceLog(("strCenter=%s", strCenter));
+						//TraceLog(("strMin=%s", strMin));
+						//TraceLog(("strMax=%s", strMax));
+						//TraceLog(("strAvg=%s", strAvg));
 
 						FireProcess::getInstance()->Push(temperature, m_stTemp[i].ThermalFullTemp.bAlarmOn, strIndex);
 

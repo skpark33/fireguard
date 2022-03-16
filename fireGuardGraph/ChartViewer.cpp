@@ -22,6 +22,8 @@
 
 #include "stdafx.h"
 #include "ChartViewer.h"
+#include "skpark/util.h"
+#include "skpark/TraceLog.h"
 #include <math.h>
 
 #ifdef _DEBUG
@@ -1782,6 +1784,32 @@ void CStaticHelper::DrawThreshold(HDC hdc, CStatic *self)
 	gdi.DrawLine(&thrpen, from2, to2);
 }
 
+void CStaticHelper::LicenseCheck(CPaintDC* pDC, HDC hdc, CStatic *self)
+{
+	if (LicenseUtil::LICENSE_ERR_CODE == 0)  return;
+
+	CString msg;
+	msg.Format("FireGuard License Error (Code=%d)", LicenseUtil::LICENSE_ERR_CODE);
+	TraceLog((msg));
+
+	Gdiplus::Graphics gdi(hdc);
+
+	CRect rect;
+	self->GetClientRect(&rect);
+	int y = rect.Height()/2;
+	Gdiplus::PointF  from1(0, y);
+	Gdiplus::PointF  to1(rect.Width(), y);
+
+	float fPenWidth = 50.0f;
+	Gdiplus::Pen hidePen(Gdiplus::Color(0xaa, 0xff, 0xff, 0x00), fPenWidth);
+	hidePen.SetLineJoin(Gdiplus::LineJoinRound);
+	gdi.DrawLine(&hidePen, from1, to1);
+
+	CRect rc(0, y - (fPenWidth / 2), rect.Width(), y + (fPenWidth / 2));
+	pDC->DrawText(msg, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+}
+
 CStaticHelper::CStaticHelper() : m_currentHBITMAP(0), m_WCCisV6(0), m_testMode(false) 
 , m_thresholdMax(-1.0f), m_thresholdMin(-20.0f)
 {
@@ -1859,6 +1887,8 @@ void CStaticHelper::onPaint(CStatic *self)
 	cbmp.Detach();
 
 	DrawThreshold(dc, self);
+	LicenseCheck(&dc, dc, self);
+	
 	//WriteSingleLine("          온도 감시          ", &dc, self, m_normalFont1, RGB(0x26, 0x28, 0x34), 0, 48);
 
 }

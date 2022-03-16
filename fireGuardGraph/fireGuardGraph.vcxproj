@@ -277,6 +277,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="SelectCameraDlg.cpp" />
+    <ClCompile Include="skpark\NetworkAdapter.cpp" />
+    <ClCompile Include="skpark\util.cpp" />
     <ClCompile Include="SMSManagerDlg.cpp" />
     <ClCompile Include="sockUtil.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -316,6 +318,8 @@
     <ClInclude Include="preSocketSession.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SelectCameraDlg.h" />
+    <ClInclude Include="skpark\NetworkAdapter.h" />
+    <ClInclude Include="skpark\util.h" />
     <ClInclude Include="SMSManagerDlg.h" />
     <ClInclude Include="sockUtil.h" />
     <ClInclude Include="stdafx.h" />

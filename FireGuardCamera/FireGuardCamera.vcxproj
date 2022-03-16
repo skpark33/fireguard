@@ -270,6 +270,7 @@
     <ClCompile Include="PrivacyMaskInfoDlg.cpp" />
     <ClCompile Include="SerialPortInfoDlg.cpp" />
     <ClCompile Include="skpark\FireProcess.cpp" />
+    <ClCompile Include="skpark\NetworkAdapter.cpp" />
     <ClCompile Include="skpark\sockUtil.cpp" />
     <ClCompile Include="skpark\util.cpp" />
     <ClCompile Include="SNMPInfoDlg.cpp" />
@@ -327,6 +328,7 @@
     <ClInclude Include="SerialPortInfoDlg.h" />
     <ClInclude Include="SetupDlg.h" />
     <ClInclude Include="skpark\FireProcess.h" />
+    <ClInclude Include="skpark\NetworkAdapter.h" />
     <ClInclude Include="skpark\sockUtil.h" />
     <ClInclude Include="skpark\TraceLog.h" />
     <ClInclude Include="skpark\util.h" />

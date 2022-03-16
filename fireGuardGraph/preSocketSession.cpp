@@ -192,7 +192,7 @@ preSocketSession::run() {
 		// skpark 2010.09.13
 		std::string recvMsg;
 		std::string err;
-		TraceLog(("hear()"));
+		//TraceLog(("hear()"));
 
 		std::string classCode;
 		boolean	interactive=false;
@@ -323,7 +323,7 @@ double preSocketSession::GetData(LPCTSTR serialNo, int dType)
 		return _NO_VALUE_;
 	}
 	if (itr->second.now < now - 2 * _monitorSec) {
-		TraceLog(("Data stopped from %s-------------------------------", serialNo));
+		//TraceLog(("Data stopped from %s-------------------------------", serialNo));
 		return _NO_VALUE_;
 	}
 	return itr->second.temper;

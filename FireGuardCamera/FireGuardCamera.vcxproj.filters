@@ -156,6 +156,9 @@
     <ClCompile Include="skpark\util.cpp">
       <Filter>skpark</Filter>
     </ClCompile>
+    <ClCompile Include="skpark\NetworkAdapter.cpp">
+      <Filter>skpark</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioPlayer.h">
@@ -312,6 +315,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="skpark\util.h">
+      <Filter>skpark</Filter>
+    </ClInclude>
+    <ClInclude Include="skpark\NetworkAdapter.h">
       <Filter>skpark</Filter>
     </ClInclude>
   </ItemGroup>

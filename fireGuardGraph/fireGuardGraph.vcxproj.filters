@@ -22,6 +22,9 @@
     <Filter Include="ci\libBase">
       <UniqueIdentifier>{5fa794d1-42f3-429f-8dec-c064da704a18}</UniqueIdentifier>
     </Filter>
+    <Filter Include="skpark">
+      <UniqueIdentifier>{c0576634-60d3-4fc1-817d-4fcb719b600e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChartViewer.cpp">
@@ -87,6 +90,12 @@
     <ClCompile Include="ci\libBase\ciWin32DLL.cpp">
       <Filter>ci\libBase</Filter>
     </ClCompile>
+    <ClCompile Include="skpark\NetworkAdapter.cpp">
+      <Filter>skpark</Filter>
+    </ClCompile>
+    <ClCompile Include="skpark\util.cpp">
+      <Filter>skpark</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChartViewer.h">
@@ -102,9 +111,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\skpark\TraceLog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="preSocketSession.h">
@@ -178,6 +184,15 @@
     </ClInclude>
     <ClInclude Include="ci\libBase\ciWin32DLL.h">
       <Filter>ci\libBase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\skpark\TraceLog.h">
+      <Filter>skpark</Filter>
+    </ClInclude>
+    <ClInclude Include="skpark\NetworkAdapter.h">
+      <Filter>skpark</Filter>
+    </ClInclude>
+    <ClInclude Include="skpark\util.h">
+      <Filter>skpark</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

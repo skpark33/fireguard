@@ -5,6 +5,8 @@
 #include "NetworkAdapter.h"
 
 
+int LicenseUtil::LICENSE_ERR_CODE = 0;
+
 class authInfo {
 public:
 	unsigned char  host[20];
@@ -79,9 +81,9 @@ void OpenIExplorer(CString strParam, int cx/*=1024*/, int cy/*=768*/)
 
 
 boolean
-ReadAuthFile(std::string& host, std::string& mac)
+LicenseUtil::ReadAuthFile(std::string& host, std::string& mac)
 {
-	ifstream inCredit("project.dat", ios::in);
+	std::ifstream inCredit("..\\execute\\project.dat", std::ios::in);
 	
 	if (inCredit.fail()) {
 		TraceLog(("project.dat open failed"));
@@ -118,7 +120,7 @@ ReadAuthFile(std::string& host, std::string& mac)
 	return true;
 }
 
-bool IsExistmacaddr(const char* szMacaddr)
+bool LicenseUtil::IsExistmacaddr(const char* szMacaddr)
 {
 	//int nAdtCount = m_clsAdapterList.GetCount();
 	//if(nAdtCount <= 0)
@@ -138,7 +140,7 @@ bool IsExistmacaddr(const char* szMacaddr)
 		return false;
 	}//if
 
-	string strAddr;
+	std::string strAddr;
 	for (int i = 0; i<nAdtCount; i++)
 	{
 		strAddr = m_clsAdapterList.GetAdtMacAddr(i);
@@ -149,6 +151,24 @@ bool IsExistmacaddr(const char* szMacaddr)
 	}//for
 
 	return false;
+}
+
+
+void LicenseUtil::LicenseCheck()
+{
+	std::string host, mac;
+	if (ReadAuthFile(host, mac)) {
+		if (IsExistmacaddr(mac.c_str())) {
+			LICENSE_ERR_CODE = 0;
+			return;
+		}
+		TraceLog(("MacAddress is not matched"));
+		LICENSE_ERR_CODE = 1;
+	}
+	else{
+		TraceLog(("No License file founded"));
+		LICENSE_ERR_CODE = 2;
+	}
 }
 
 

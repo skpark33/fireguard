@@ -45,7 +45,7 @@ FireProcess::FireProcess()
 	GetPrivateProfileString("FIRE_WATCH", "ID", "admin", buf, 2048, iniPath);
 	id = buf;
 
-	GetPrivateProfileString("FIRE_WATCH", "PWD", "coxcox123", buf, 2048, iniPath);
+	GetPrivateProfileString("FIRE_WATCH", "PWD", "coxcoxcox!", buf, 2048, iniPath);
 	pwd = buf;
 
 	GetPrivateProfileString("FIRE_WATCH", "MONITOR_SEC", "1", buf, 2048, iniPath);
@@ -122,7 +122,7 @@ bool FireProcess::Dialog(FireData& data)
 	CString  stream;
 	stream.Format("%s/%.2f/%d/0", data.serialNo, data.temperature, data.level);
 
-	TraceLog(("isFire:%s", stream));
+	//TraceLog(("isFire:%s", stream));
 
 	std::string result, errMsg;
 	bool retval = sockUtil::getInstance()->dialog(_ipAddress, _port, 1, stream, result, errMsg);
