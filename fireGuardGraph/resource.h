@@ -82,6 +82,7 @@
 #define IDC_CHECK_ALL2                  1042
 #define IDC_CHECK_VELOCITY              1042
 #define IDC_EDIT_VELOC_MAX2             1042
+#define IDC_EDIT_LOG_DURATION           1042
 #define IDC_RADIO5                      1043
 #define IDC_BUTTON_VELOC_APPLY          1043
 #define IDC_RADIO6                      1044
@@ -89,11 +90,14 @@
 #define IDC_RADIO7                      1045
 #define IDC_VELOC_ANIMATE               1045
 #define IDC_RADIO8                      1046
+#define IDC_BUTTON_VELOC_APPLY2         1046
+#define IDC_BUTTON_LOG_DURATION_APPLY   1046
 #define IDC_EDIT_VELOC_RANGE            1047
 #define IDC_RADIO9                      1047
 #define IDC_EDIT_VELOC_DEVI             1048
 #define IDC_RADIO10                     1048
 #define IDC_RADIO11                     1049
+#define IDC_STATIC_VELO_SEC             1049
 
 // Next default values for new objects
 // 
@@ -101,7 +105,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1048
+#define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

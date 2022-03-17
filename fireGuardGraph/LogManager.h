@@ -52,6 +52,12 @@ public:
 
 	void ClearLog();
 
+	void SetLogDuration(int ld) { _logDuration = ld; }
+	void DeleteOldLog();
+
+
+protected:
+
 	int _year;
 	int _month;
 	int _day;
@@ -60,8 +66,8 @@ public:
 	int _sec;
 
 	CString _prefix;
+	int _logDuration;
 
-protected:
 
 	FILE*			_dailyLog;
 	CString		_logFullPath;

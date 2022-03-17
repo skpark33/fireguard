@@ -327,8 +327,10 @@
   <ItemGroup>
     <Image Include="res\FireGuardGraph.ico" />
     <Image Include="res\freezePB.ico" />
+    <Image Include="res\freezePB_h.ico" />
     <Image Include="res\pointerPB.ico" />
     <Image Include="res\runPB.ico" />
+    <Image Include="res\runPB_h.ico" />
     <Image Include="res\savePB.ico" />
     <Image Include="res\stopPB.ico" />
     <Image Include="res\zoomInPB.ico" />

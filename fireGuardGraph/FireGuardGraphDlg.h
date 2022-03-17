@@ -213,6 +213,7 @@ public:
 	CButton m_btSMS;
 	afx_msg void OnBnClickedButtonSmsMgr();
 	CButton m_checkSMS;
+	bool m_smsAllowed;
 
 	SendData	m_sendData[MAX_DATA];
 
@@ -240,4 +241,8 @@ public:
 	afx_msg void OnBnClickedCheck6();
 	afx_msg void OnBnClickedCheck7();
 	afx_msg void OnBnClickedCheck8();
+	CEdit m_editLogDuration;
+	int m_logDuration;
+	afx_msg void OnBnClickedButtonLogDurationApply();
+	CStatic m_stVeloSec;
 };

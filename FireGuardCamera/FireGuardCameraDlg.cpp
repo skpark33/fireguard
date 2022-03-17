@@ -1673,8 +1673,15 @@ void CFireGuardCameraDlg::OnBnClickedButtonStreaming()
 	}
 
 
+	CString title; 
+	title.Format("Ä«¸Þ¶ó %s", rtspurl);  //skpark
+
+	TraceLog(("skpark : title %s", title));
+
+
 	if (m_StreamingDlg.GetSafeHwnd() == NULL) {
 		m_StreamingDlg.Create(CStreamingDlg::IDD, this);
+		m_StreamingDlg.SetWindowText(title);  //skpark
 	}
 	m_StreamingDlg.ShowWindow(SW_SHOW);
 

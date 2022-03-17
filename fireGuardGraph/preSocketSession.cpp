@@ -113,6 +113,11 @@ preSocketSession::preSocketSession(int port)
 	GetPrivateProfileString("FIRE_WATCH", "MONITOR_SEC", "1", buf, 2048, iniPath);
 	_monitorSec = atoi(buf);
 
+	memset(buf, 0x00, 512);
+	GetPrivateProfileString("FIRE_WATCH", "LOG_DURATION", "365", buf, 511, iniPath);
+	_logger.SetLogDuration(atoi(buf));
+
+
 }
 
 preSocketSession::~preSocketSession() {

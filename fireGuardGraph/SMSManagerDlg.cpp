@@ -7,6 +7,7 @@
 #include "afxdialogex.h"
 #include "LogManager.h"
 #include "skpark/TraceLog.h"
+#include "skpark/util.h"
 #include "resource.h"
 #include "ci/libAes256/ciElCryptoAes256.h"
 //#include "EzvizDDNSAPI.h"

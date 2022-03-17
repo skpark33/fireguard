@@ -4,6 +4,7 @@
 #include "sockUtil.h"
 #include "chartdir.h"
 
+#include "skpark/util.h"
 #include "skpark/TraceLog.h"
 
 #define  HEADER  "Event time, CameraId, Temperature\n"
@@ -13,6 +14,7 @@ LogManager::LogManager(LPCTSTR prefix)
 	, _dataArray(NULL)
 	, _timeArray(NULL)
 	, _prefix(prefix)
+	, _logDuration(-1)
 {
 	_year = _month = _day = _hour = _min = _sec = -1;
 	_cameraIdx = 0;
@@ -33,6 +35,12 @@ LogManager::destroy()
 	ClearLog();
 }
 
+void LogManager::DeleteOldLog()
+{
+	if (_logDuration < 0) return;
+	deleteOldFile(UBC_UPLOADER_PATH, _logDuration, 0,0, "*.csv");
+}
+
 bool LogManager::OpenLogForWrite(LPCTSTR day, LPCTSTR sec)
 {
 	static CString prevFile = "";
@@ -40,6 +48,9 @@ bool LogManager::OpenLogForWrite(LPCTSTR day, LPCTSTR sec)
 	if ((!_logFullPath.IsEmpty() && prevFile != _logFullPath))
 	{
 		ciGuard aLock(_fileLock);
+
+		DeleteOldLog();
+
 		TraceLog(("FileChange(%s)", _logFullPath));
 		if (_dailyLog)
 		{

@@ -247,7 +247,8 @@ CfireGuardGraphDlg::CfireGuardGraphDlg(CWnd* pParent /*=NULL*/)
 	, m_isStopAlarm(false)
 	, m_isStopTrend(false)
 	, m_max_temperature(-999.0f)
-
+	, m_logDuration(365)
+	, m_smsAllowed(false)
 {
 	m_AlarmLogger = new LogManager("Alarm");
 	m_TrendLogger = new LogManager("Trend");
@@ -321,6 +322,8 @@ void CfireGuardGraphDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK_SEND_MSG, m_checkSMS);
 	DDX_Control(pDX, IDC_STATIC_COUNTER, m_stCounter);
 	//DDX_Control(pDX, IDC_EDIT_VELOC_DEVI, m_editDevi);
+	DDX_Control(pDX, IDC_EDIT_LOG_DURATION, m_editLogDuration);
+	DDX_Control(pDX, IDC_STATIC_VELO_SEC, m_stVeloSec);
 }
 
 BEGIN_MESSAGE_MAP(CfireGuardGraphDlg, CDialog)
@@ -359,6 +362,7 @@ BEGIN_MESSAGE_MAP(CfireGuardGraphDlg, CDialog)
 	ON_BN_CLICKED(IDC_CHECK_6, &CfireGuardGraphDlg::OnBnClickedCheck6)
 	ON_BN_CLICKED(IDC_CHECK_7, &CfireGuardGraphDlg::OnBnClickedCheck7)
 	ON_BN_CLICKED(IDC_CHECK_8, &CfireGuardGraphDlg::OnBnClickedCheck8)
+	ON_BN_CLICKED(IDC_BUTTON_LOG_DURATION_APPLY, &CfireGuardGraphDlg::OnBnClickedButtonLogDurationApply)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -451,7 +455,20 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
 	m_isStopTrend = bool(atoi(buf));
 	m_checkStopTrend.SetCheck(int(m_isStopTrend));
 
-    // Load icons for the Run/Freeze buttons
+	memset(buf, 0x00, 512);
+	GetPrivateProfileString("FIRE_WATCH", "LOG_DURATION", "365", buf, 511, iniPath);
+	m_logDuration = atoi(buf);
+	m_editLogDuration.SetWindowText(buf);
+
+	// FirmwareView 가  sosId 에 전화번호 끝에 4자리를 적은후, SMS_ALLOWED 를 true 로 자동으로 바꿔주게 되어있다.
+	memset(buf, 0x00, 512);
+	GetPrivateProfileString("FIRE_WATCH", "SMS_ALLOWED", "0", buf, 511, iniPath);
+	m_smsAllowed = bool(atoi(buf));
+	if (!m_smsAllowed) m_checkSMS.SetCheck(true);
+	m_checkSMS.EnableWindow(m_smsAllowed);
+
+
+	// Load icons for the Run/Freeze buttons
     loadButtonIcon(IDC_RunPB, IDI_RunPB, 100, 20);
     loadButtonIcon(IDC_FreezePB, IDI_FreezePB, 100, 20);
 
@@ -469,8 +486,14 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
 		&m_VelocViewer, &m_editVelocMax,
 		&m_aniVelocCtrl, &m_editFrequency); // , &m_editDevi);
 
-	m_velociThreshold->ReadConfig("50.0", "-50.0");
+	m_velociThreshold->ReadConfig("200.0", "-50.0");
 	m_velociThreshold->InitAnimation();
+
+	TraceLog(("skpark ----------------------:%f, %d", m_velociThreshold->m_thresholdMax, int(m_velociThreshold->m_thresholdMax / 4.0)));
+	CString veloStr;
+	veloStr.Format("= %d 초", int(m_velociThreshold->m_thresholdMax / 4.0));
+	m_stVeloSec.SetWindowTextA(veloStr);
+
 
 	m_slopeThreshold = new CThresholdHandler(
 		VELOCITY_OVER,
@@ -1372,15 +1395,22 @@ void CfireGuardGraphDlg::OnBnClickedButtonVelocApply()
 	m_editVelocMax.GetWindowTextA(maxStr);
 
 	int max = atoi(maxStr);
+	CString buf;
+	buf.Format("= %d 초", max / 4);
+	m_stVeloSec.SetWindowTextA(buf);
 
 	if (max < MIN_VELO)
 	{
 		m_editVelocMax.SetWindowTextA("0");
+		m_stVeloSec.SetWindowTextA("= 0 초");
 	}
 	if (max > MAX_VELO)
 	{
 		freqStr.Format("%d", MAX_VELO);
 		m_editVelocMax.SetWindowTextA(freqStr);
+		CString buf;
+		buf.Format("= %d 초", MAX_VELO/4);
+		m_stVeloSec.SetWindowTextA(buf);
 	}
 
 	//m_editDevi.GetWindowTextA(maxStr);
@@ -1675,3 +1705,17 @@ void CfireGuardGraphDlg::OnBnClickedCheck5() {	userCheck[4] = true; }
 void CfireGuardGraphDlg::OnBnClickedCheck6() {	userCheck[5] = true; }
 void CfireGuardGraphDlg::OnBnClickedCheck7() {	userCheck[6] = true; }
 void CfireGuardGraphDlg::OnBnClickedCheck8() {	userCheck[7] = true; }
+
+
+void CfireGuardGraphDlg::OnBnClickedButtonLogDurationApply()
+{
+	CString iniPath = UBC_CONFIG_PATH;
+	iniPath += UBCBRW_INI;
+
+	CString buf;
+	m_editLogDuration.GetWindowText(buf);
+
+	WritePrivateProfileStringA("FIRE_WATCH", "LOG_DURATION", buf, iniPath);
+	m_logDuration = atoi(buf);
+
+}
