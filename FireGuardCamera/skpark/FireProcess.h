@@ -5,13 +5,15 @@
 #include <cstdio>
 #include <string>
 #include <list>
+#include <set>
 #include <map>
 #include <fstream>
 
 #define MAX_CAMERA 8
 #define MAX_SIM_DATA  360
+#define WM_TEMPERATURE_ALARM 1049
 
-
+class CFireGuardCameraDlg;
 
 class FireData
 {
@@ -47,6 +49,8 @@ public:
 	float GenerateTemperature();
 	static UINT  GenerateData(LPVOID pParam);
 
+	void SetDlg(CFireGuardCameraDlg* dlg) { _dlg = dlg; }
+
 	CString id;
 	CString pwd;
 	int monitor_sec;
@@ -54,6 +58,8 @@ public:
 protected:
 	FireProcess();
 	static FireProcess*	_instance;
+
+	CFireGuardCameraDlg*	_dlg;
 
 	CString _errStr;
 	FireDataList		_list;
@@ -70,6 +76,15 @@ protected:
 	//simulator
 	CString _serialNo;
 	float _simArray[MAX_CAMERA][MAX_SIM_DATA];
+
+	CCriticalSection	_popupLock;
+	list<int>	_popupList;
+
+	void _pushPopup(int cameraId);
+public:
+	int popPopup();
+	
+
 };
 
 #endif // _FireProcess_h_

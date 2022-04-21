@@ -23,6 +23,9 @@ public:
 	void destroy();
 	void push(const char* recvMsg);
 
+	void pushCommand(const char* command, int cameraId, int alarmType);
+	CString popCommand();
+
 protected:
 	preSocketHandler() : _session(0), _isAlive(true) {}
 	static preSocketHandler*		_instance;
@@ -33,7 +36,14 @@ protected:
 	bool			_isAlive;
 	preSocketSession*	_session;
 	CWinThread* m_pThread;
+
+	CCriticalSection				_commandListLock;
+	std::list<CString>				_commandList;
+
+
 };
+
+
 
 class preSocketSession
 {

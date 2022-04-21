@@ -27,7 +27,7 @@ public:
 
 public:
 	
-	CStreamingDlg m_StreamingDlg;
+	CStreamingDlg m_StreamingDlg[8];
 
 
 	HANDLE m_hDiscoveryEvent;
@@ -52,6 +52,8 @@ public:
 	bool m_stopPolling;
 	afx_msg void OnClose();
 	CString m_msgText;
+	int m_selected;
+	char rtspurl[8][500];
 	//skpark in your area end
 
 	bool m_bInitTriggerServer;
@@ -60,7 +62,8 @@ public:
 	HTRIGGER m_hTrigger;
 	HSYSLOG	m_hSyslog;
 
-
+	void ShowScreen(int cameraId);
+	//static UINT  ProcessPopup(LPVOID pParam);
 // Implementation
 protected:
 	HICON m_hIcon;
@@ -114,4 +117,6 @@ public:
 	afx_msg void OnBnClickedButtonSnmp();
 	afx_msg void OnBnClickedButtonPppoe();
 	afx_msg void OnBnClickedButtonLogClear();
+
+	afx_msg BOOL OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
 };

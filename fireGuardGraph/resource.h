@@ -98,6 +98,15 @@
 #define IDC_RADIO10                     1048
 #define IDC_RADIO11                     1049
 #define IDC_STATIC_VELO_SEC             1049
+#define IDC_BUTTON1                     1050
+#define IDC_BT_SHOW_1                   1050
+#define IDC_BT_SHOW_2                  1051
+#define IDC_BT_SHOW_3                   1052
+#define IDC_BT_SHOW_4                   1053
+#define IDC_BT_SHOW_5                   1054
+#define IDC_BT_SHOW_6                   1055
+#define IDC_BT_SHOW_7                   1056
+#define IDC_BT_SHOW_8                   1057
 
 // Next default values for new objects
 // 
@@ -105,7 +114,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1050
+#define _APS_NEXT_CONTROL_VALUE         1058
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

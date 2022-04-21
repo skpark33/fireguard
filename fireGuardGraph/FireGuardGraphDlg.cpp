@@ -324,6 +324,14 @@ void CfireGuardGraphDlg::DoDataExchange(CDataExchange* pDX)
 	//DDX_Control(pDX, IDC_EDIT_VELOC_DEVI, m_editDevi);
 	DDX_Control(pDX, IDC_EDIT_LOG_DURATION, m_editLogDuration);
 	DDX_Control(pDX, IDC_STATIC_VELO_SEC, m_stVeloSec);
+	DDX_Control(pDX, IDC_BT_SHOW_1, m_btShow[0]);
+	DDX_Control(pDX, IDC_BT_SHOW_2, m_btShow[1]);
+	DDX_Control(pDX, IDC_BT_SHOW_3, m_btShow[2]);
+	DDX_Control(pDX, IDC_BT_SHOW_4, m_btShow[3]);
+	DDX_Control(pDX, IDC_BT_SHOW_5, m_btShow[4]);
+	DDX_Control(pDX, IDC_BT_SHOW_6, m_btShow[5]);
+	DDX_Control(pDX, IDC_BT_SHOW_7, m_btShow[6]);
+	DDX_Control(pDX, IDC_BT_SHOW_8, m_btShow[7]);
 }
 
 BEGIN_MESSAGE_MAP(CfireGuardGraphDlg, CDialog)
@@ -363,6 +371,14 @@ BEGIN_MESSAGE_MAP(CfireGuardGraphDlg, CDialog)
 	ON_BN_CLICKED(IDC_CHECK_7, &CfireGuardGraphDlg::OnBnClickedCheck7)
 	ON_BN_CLICKED(IDC_CHECK_8, &CfireGuardGraphDlg::OnBnClickedCheck8)
 	ON_BN_CLICKED(IDC_BUTTON_LOG_DURATION_APPLY, &CfireGuardGraphDlg::OnBnClickedButtonLogDurationApply)
+	ON_BN_CLICKED(IDC_BT_SHOW_1, &CfireGuardGraphDlg::OnBnClickedBtShow1)
+	ON_BN_CLICKED(IDC_BT_SHOW_2, &CfireGuardGraphDlg::OnBnClickedBtShow2)
+	ON_BN_CLICKED(IDC_BT_SHOW_3, &CfireGuardGraphDlg::OnBnClickedBtShow3)
+	ON_BN_CLICKED(IDC_BT_SHOW_4, &CfireGuardGraphDlg::OnBnClickedBtShow4)
+	ON_BN_CLICKED(IDC_BT_SHOW_5, &CfireGuardGraphDlg::OnBnClickedBtShow5)
+	ON_BN_CLICKED(IDC_BT_SHOW_6, &CfireGuardGraphDlg::OnBnClickedBtShow6)
+	ON_BN_CLICKED(IDC_BT_SHOW_7, &CfireGuardGraphDlg::OnBnClickedBtShow7)
+	ON_BN_CLICKED(IDC_BT_SHOW_8, &CfireGuardGraphDlg::OnBnClickedBtShow8)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -409,6 +425,8 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
 	for (int j = 0; j < MAX_CAMERA; j++)
 	{
 		m_checkCamera[j].SetCheck(true);
+		m_btShow[j].EnableWindow(false);
+
 	}
 	m_checkCameraAll.SetCheck(false);
 
@@ -830,16 +848,21 @@ void CfireGuardGraphDlg::OnDataTimer()
 				
 				if (hasTemperAlarm)
 				{
-					if (!m_temperThreshold->hasAleadyPlayed())
-					{
-						SendSMS(j + 1, TEMPER_OVER, value);
-					}
+					//if (!m_temperThreshold->hasAleadyPlayed())
+					//{
+					//	SendSMS(j + 1, TEMPER_OVER, value);
+					//	CString command;
+					//	command.Format("POPUP/%d/0", j);
+					//	preSocketHandler::getInstance()->pushCommand("POPUP", j, 0); // popup 으로 화면을 띠울것을 요청한다.
+					//}
 					if (!hasTemperBgChanged)
 					{
 						// Change Chart Color
 							CopyFileA(TEMPER_ALARM_BG, TEMPER_BG, FALSE);
 							TraceLog(("setBgImage to alarm"));
 							hasTemperBgChanged = true;
+							preSocketHandler::getInstance()->pushCommand("POPUP", j, 1); // popup 으로 화면을 띠울것을 요청한다.
+							SendSMS(j + 1, TEMPER_OVER, value);
 					}
 					m_AlarmLogger->SaveLog(idStr, value);
 					break;
@@ -860,13 +883,15 @@ void CfireGuardGraphDlg::OnDataTimer()
 
 				if (hasVelociAlarm)
 				{
-					if (!m_velociThreshold->hasAleadyPlayed())
-					{
-						SendSMS(j + 1, VELOCITY_OVER, rate);
-					}
+					//if (!m_velociThreshold->hasAleadyPlayed())
+					//{
+					//	SendSMS(j + 1, VELOCITY_OVER, rate);
+					//}
 					if (!hasVelociBgChanged) {
 						CopyFileA(VELO_ALARM_BG, VELO_BG, FALSE);
 						hasVelociBgChanged = true;
+						preSocketHandler::getInstance()->pushCommand("POPUP", j, 2); //  popup 으로 화면을 띠울것을 요청한다.
+						SendSMS(j + 1, VELOCITY_OVER, rate);
 					}
 					CString idStr;
 					idStr.Format("%d", j + 1);
@@ -916,6 +941,7 @@ void CfireGuardGraphDlg::OnDataTimer()
 			if (!userCheck[i])
 			{
 				m_checkCamera[i].SetCheck(true);
+				m_btShow[i].EnableWindow(true);
 			}
 		}
 		else
@@ -923,6 +949,8 @@ void CfireGuardGraphDlg::OnDataTimer()
 			if (!userCheck[i])
 			{
 				m_checkCamera[i].SetCheck(false);
+				m_btShow[i].EnableWindow(false);
+
 			}
 		}
 	}
@@ -1718,4 +1746,38 @@ void CfireGuardGraphDlg::OnBnClickedButtonLogDurationApply()
 	WritePrivateProfileStringA("FIRE_WATCH", "LOG_DURATION", buf, iniPath);
 	m_logDuration = atoi(buf);
 
+}
+
+
+void CfireGuardGraphDlg::OnBnClickedBtShow1()
+{
+	preSocketHandler::getInstance()->pushCommand("POPUP", 0, 0); // popup 으로 화면을 띠울것을 요청한다.
+}
+void CfireGuardGraphDlg::OnBnClickedBtShow2()
+{
+	preSocketHandler::getInstance()->pushCommand("POPUP", 1, 0); // popup 으로 화면을 띠울것을 요청한다.
+}
+void CfireGuardGraphDlg::OnBnClickedBtShow3()
+{
+	preSocketHandler::getInstance()->pushCommand("POPUP", 2, 0); // popup 으로 화면을 띠울것을 요청한다.
+}
+void CfireGuardGraphDlg::OnBnClickedBtShow4()
+{
+	preSocketHandler::getInstance()->pushCommand("POPUP", 3, 0); // popup 으로 화면을 띠울것을 요청한다.
+}
+void CfireGuardGraphDlg::OnBnClickedBtShow5()
+{
+	preSocketHandler::getInstance()->pushCommand("POPUP", 4, 0); // popup 으로 화면을 띠울것을 요청한다.
+}
+void CfireGuardGraphDlg::OnBnClickedBtShow6()
+{
+	preSocketHandler::getInstance()->pushCommand("POPUP", 5, 0); // popup 으로 화면을 띠울것을 요청한다.
+}
+void CfireGuardGraphDlg::OnBnClickedBtShow7()
+{
+	preSocketHandler::getInstance()->pushCommand("POPUP", 6, 0); // popup 으로 화면을 띠울것을 요청한다.
+}
+void CfireGuardGraphDlg::OnBnClickedBtShow8()
+{
+	preSocketHandler::getInstance()->pushCommand("POPUP", 7, 0); // popup 으로 화면을 띠울것을 요청한다.
 }

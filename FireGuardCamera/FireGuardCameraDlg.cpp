@@ -81,10 +81,12 @@ CFireGuardCameraDlg::CFireGuardCameraDlg(CWnd* pParent /*=NULL*/)
 	, m_foundedCount(0)  //skpark in your area
 	, m_initDone(false)
 	, m_stopPolling(false)
+	, m_selected(-1)
 {
 	
 	for (int i = 0; i < MAX_CAMERA; i++) {
 		theApp.m_allCamera[i] = NULL;
+		memset(rtspurl[i], 0x00, 500);
 	}
 
 
@@ -119,6 +121,7 @@ CFireGuardCameraDlg::CFireGuardCameraDlg(CWnd* pParent /*=NULL*/)
 void CFireGuardCameraDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
+
 	DDX_Control(pDX, IDC_LIST_CAMERA, m_List_Camera);	
 	DDX_Control(pDX, IDC_COMBO_CH_SNAPSHOT, m_cbChSnapShot);
 }
@@ -128,6 +131,7 @@ BEGIN_MESSAGE_MAP(CFireGuardCameraDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_CLOSE()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_COPYDATA()
 	//}}AFX_MSG_MAP
 	ON_BN_CLICKED(IDC_BUTTON_DISCOVERY, &CFireGuardCameraDlg::OnBnClickedButtonDiscovery)
 	ON_NOTIFY(NM_CLICK, IDC_LIST_CAMERA, &CFireGuardCameraDlg::OnNMClickListCamera)
@@ -238,6 +242,8 @@ BOOL CFireGuardCameraDlg::OnInitDialog()
 
 	::SetWindowPos(this->m_hWnd, HWND_TOP, 10, 10, -1, -1, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 	
+	//AfxBeginThread(CFireGuardCameraDlg::ProcessPopup, this);
+
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -470,6 +476,7 @@ void CFireGuardCameraDlg::GetAllCamera()
 	for (int i = 0; i < m_foundedCount; i++) {
 		SelectOneCamera(i);
 	}
+	FireProcess::getInstance()->SetDlg(this);
 	m_initDone = true;
 }
 
@@ -486,6 +493,7 @@ void CFireGuardCameraDlg::SelectOneCamera(int nSel)
 	if (theApp.m_allCamera[nSel])
 		SPIDER_DestroyCameraHandle(theApp.m_allCamera[nSel]);
 	theApp.m_allCamera[nSel] = NULL;
+
 
 	HCAMERA hCamera = SPIDER_CreateCameraHandle(szip, 80, FireProcess::getInstance()->id, FireProcess::getInstance()->pwd);
 	theApp.m_allCamera[nSel] = hCamera;
@@ -861,15 +869,24 @@ void CFireGuardCameraDlg::OnNMClickListCamera(NMHDR *pNMHDR, LRESULT *pResult)
 		//ST_SPIDER_DISCOVERY_CAMEAR_INFO stInfo;
 		//SPIDER_GetDiscoveryCameraInfo(nSel, &stInfo);
 
+	TraceLog(("show---1"));
+		// 같은걸 또 찍은 경우, 하지 않는다.
+		if (m_selected >= 0 && m_selected == nSel) {
+			return;
+		}
 		
 		char szip[100] = "";
 		m_List_Camera.GetItemText(nSel, 2, szip, 50);		
+		TraceLog(("show---2"));
 
-		if(theApp.m_hSelectCamera)
-			SPIDER_DestroyCameraHandle(theApp.m_hSelectCamera);
-		theApp.m_hSelectCamera = NULL;
+		//if(theApp.m_hSelectCamera)
+		//	SPIDER_DestroyCameraHandle(theApp.m_hSelectCamera);
+		//theApp.m_hSelectCamera = NULL;
+		TraceLog(("show---3"));
 
 		theApp.m_hSelectCamera = theApp.m_allCamera[nSel];
+		m_selected = nSel;
+		TraceLog(("show---4"));
 		/*
 		HCAMERA hCamera = SPIDER_CreateCameraHandle(szip, 80, "admin", "-507263a");
 		theApp.m_hSelectCamera = hCamera;
@@ -1640,15 +1657,24 @@ LRESULT CFireGuardCameraDlg::OnSyslogData(WPARAM wParam, LPARAM lParam )
 
 void CFireGuardCameraDlg::OnBnClickedButtonStreaming()
 {
-	if(m_StreamingDlg.m_hStream)
+	if (m_selected == -1)
 	{
-		if(IDYES != MessageBox(("Stop Streaming?"), ("Streaming"), MB_YESNO))
+		MessageBox(("선택된 카메라가 없습니다. 위 목록에서 카메라를 선택해주세요"));
+		return;
+	}
+
+	if(m_StreamingDlg[m_selected].m_hStream)
+	{
+		if (IDYES != MessageBox(("현재 영상화면을 닫으시겠습니까 ?"), ("Streaming"), MB_YESNO))
+		{
 			return;
+		}
 
-		m_StreamingDlg.StopStreaming();
+		m_StreamingDlg[m_selected].StopStreaming();
 
-		if(m_StreamingDlg.GetSafeHwnd())
-			m_StreamingDlg.EndDialog(IDOK);
+		if (m_StreamingDlg[m_selected].GetSafeHwnd()) {
+			m_StreamingDlg[m_selected].EndDialog(IDOK);
+		}
 
 		GetDlgItem(IDC_BUTTON_STREAMING)->SetWindowText(("화면 시작"));
 		return;
@@ -1663,10 +1689,11 @@ void CFireGuardCameraDlg::OnBnClickedButtonStreaming()
 
 	int nChannelIndex = 0;
 
-	char rtspurl[500] = "";
-	SPIDER_GetStreamingURL(theApp.m_hSelectCamera, nChannelIndex, rtspurl);
-
-	if(strlen(rtspurl) == 0)
+	if (strlen(rtspurl[m_selected]) == 0)
+	{
+		SPIDER_GetStreamingURL(theApp.m_hSelectCamera, nChannelIndex, rtspurl[m_selected]);
+	}
+	if (strlen(rtspurl[m_selected]) == 0)
 	{
 		MessageBox(("Failed to get url address."));
 		return;
@@ -1674,22 +1701,21 @@ void CFireGuardCameraDlg::OnBnClickedButtonStreaming()
 
 
 	CString title; 
-	title.Format("카메라 %s", rtspurl);  //skpark
+	title.Format("카메라 %s", rtspurl[m_selected]);  //skpark
 
 	TraceLog(("skpark : title %s", title));
 
 
-	if (m_StreamingDlg.GetSafeHwnd() == NULL) {
-		m_StreamingDlg.Create(CStreamingDlg::IDD, this);
-		m_StreamingDlg.SetWindowText(title);  //skpark
+	if (m_StreamingDlg[m_selected].GetSafeHwnd() == NULL) {
+		m_StreamingDlg[m_selected].Create(CStreamingDlg::IDD, this);
+		m_StreamingDlg[m_selected].SetWindowText(title);  //skpark
 	}
-	m_StreamingDlg.ShowWindow(SW_SHOW);
+	m_StreamingDlg[m_selected].ShowWindow(SW_SHOW);
 
-	if(false == m_StreamingDlg.StartStreaming(rtspurl))
+	if (false == m_StreamingDlg[m_selected].StartStreaming(rtspurl[m_selected]))
 	{
-		m_StreamingDlg.StopStreaming();
-		m_StreamingDlg.EndDialog(IDOK);
-
+		m_StreamingDlg[m_selected].StopStreaming();
+		m_StreamingDlg[m_selected].EndDialog(IDOK);
 		MessageBox(("Failed to start streaming."));
 	}
 	else
@@ -2076,4 +2102,102 @@ void CFireGuardCameraDlg::OnBnClickedButtonLogClear()
 {
 	m_msgText = "";
 	GetDlgItem(IDC_EDIT_CAMERA_INFO)->SetWindowText("");
+}
+
+//AfxBeginThread(CFireGuardCameraDlg::ProcessPopup, this);
+//UINT  CFireGuardCameraDlg::ProcessPopup(LPVOID pParam)
+//{
+//	CFireGuardCameraDlg* dlg = (CFireGuardCameraDlg*)pParam;
+//	while (1)
+//	{
+//		int cameraId = FireProcess::getInstance()->popPopup();
+//		if (cameraId == -1) {
+//			Sleep(1000);
+//		}
+//		else {
+//			dlg->ShowScreen(cameraId);
+//		}
+//	}
+//	return 0;
+//}
+
+BOOL CFireGuardCameraDlg::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct)
+{
+	switch (pCopyDataStruct->dwData)
+	{
+	case WM_TEMPERATURE_ALARM:
+		 ShowScreen(atoi((LPCTSTR)pCopyDataStruct->lpData));
+	
+	}
+
+	BOOL retval = CDialog::OnCopyData(pWnd, pCopyDataStruct);
+	TraceLog(("OnCopyData() end"));
+	return retval;
+}
+
+void CFireGuardCameraDlg::ShowScreen(int cameraId)
+{
+	TraceLog(("ShowScreen(%d)", cameraId));
+
+	/*if (theApp.m_hSelectCamera) 
+		SPIDER_DestroyCameraHandle(theApp.m_hSelectCamera);
+	theApp.m_hSelectCamera = NULL;*/
+	TraceLog(("ShowScreen1(%d)", cameraId));
+	bool changed = false;
+	if (m_selected < 0 || cameraId != m_selected) {
+		theApp.m_hSelectCamera = theApp.m_allCamera[cameraId];
+		changed = true;
+		m_selected = cameraId;
+	}
+
+	if (changed == false && (m_StreamingDlg[cameraId].m_hStream || m_StreamingDlg[cameraId].GetSafeHwnd() == NULL)) {
+		m_StreamingDlg[cameraId].ShowWindow(SW_SHOW);
+		m_StreamingDlg[cameraId].SetWindowPos(&CWnd::wndTopMost, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+		return;
+	}
+	TraceLog(("ShowScreen2(%d)", cameraId));
+
+	if (m_StreamingDlg[cameraId].m_hStream)
+	{
+		m_StreamingDlg[cameraId].StopStreaming();
+		if (m_StreamingDlg[cameraId].GetSafeHwnd()) {
+			m_StreamingDlg[cameraId].EndDialog(IDOK);
+		}
+	}
+	TraceLog(("ShowScreen3(%d)", cameraId));
+
+	int nChannelIndex = 0;
+
+	if (strlen(rtspurl[cameraId]) == 0)
+	{
+		SPIDER_GetStreamingURL(theApp.m_hSelectCamera, nChannelIndex, rtspurl[cameraId]);
+		TraceLog(("ShowScreen4(%d)", cameraId));
+	}
+	if (strlen(rtspurl[cameraId]) == 0)
+	{
+		MessageBox(("Failed to get url address."));
+		return;
+	}
+
+	CString title;
+	title.Format("카메라 %s", rtspurl);  //skpark
+
+	TraceLog(("show4 skpark : title %s", title));
+
+	if (m_StreamingDlg[cameraId].GetSafeHwnd() == NULL) {
+		m_StreamingDlg[cameraId].Create(CStreamingDlg::IDD, NULL);
+		m_StreamingDlg[cameraId].SetWindowText(title);  //skpark
+	} 
+	m_StreamingDlg[cameraId].ShowWindow(SW_SHOW);
+	m_StreamingDlg[cameraId].SetWindowPos(&CWnd::wndTopMost, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+
+	if (false == m_StreamingDlg[cameraId].StartStreaming(rtspurl[cameraId]))
+	{
+		m_StreamingDlg[cameraId].StopStreaming();
+		m_StreamingDlg[cameraId].EndDialog(IDOK);
+
+		MessageBox(("Failed to start streaming."));
+	}
+	TraceLog(("ShowScreen5(%d)", cameraId));
+
 }

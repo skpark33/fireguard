@@ -245,4 +245,13 @@ public:
 	int m_logDuration;
 	afx_msg void OnBnClickedButtonLogDurationApply();
 	CStatic m_stVeloSec;
+	CButton m_btShow[MAX_CAMERA];
+	afx_msg void OnBnClickedBtShow1();
+	afx_msg void OnBnClickedBtShow2();
+	afx_msg void OnBnClickedBtShow3();
+	afx_msg void OnBnClickedBtShow4();
+	afx_msg void OnBnClickedBtShow5();
+	afx_msg void OnBnClickedBtShow6();
+	afx_msg void OnBnClickedBtShow7();
+	afx_msg void OnBnClickedBtShow8();
 };

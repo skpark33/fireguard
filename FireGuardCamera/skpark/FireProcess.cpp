@@ -3,6 +3,8 @@
 #include "FireProcess.h"
 #include "TraceLog.h"
 #include "sockUtil.h"
+#include "resource.h"
+#include "FireGuardCameraDlg.h"
 
 FireProcess* 	FireProcess::_instance = 0;
 
@@ -31,6 +33,7 @@ FireProcess::FireProcess()
 , _port(14152)
 , _isAlive(true)
 ,monitor_sec(0)
+, _dlg(NULL)
 {
 	CString iniPath = UBC_CONFIG_PATH;
 	iniPath += UBCBRW_INI;
@@ -99,6 +102,9 @@ bool  FireProcess::Start()
 {
 	TraceLog(("Start()"));
 	m_pThread = AfxBeginThread(FireProcess::ProcessEvent, NULL);
+	
+	
+	
 	return true;
 }
 
@@ -131,8 +137,18 @@ bool FireProcess::Dialog(FireData& data)
 	{
 		TraceLog(("dialog failed(%s)", errMsg));
 	}
+
+	int  popupLen = strlen("POPUP/");
+	if (result.length() >popupLen + 2 &&    result.substr(0, popupLen) == "POPUP/") {
+		int cameraId = atoi(result.substr(popupLen, 1).c_str());
+		_pushPopup(cameraId);
+	}
+
 	return retval;
 }
+
+
+
 
 //
 // simulator 
@@ -184,4 +200,37 @@ float FireProcess::GenerateTemperature()
 	}
 	return _simArray[idx-1][jdx++];
 }
+
+void FireProcess::_pushPopup(int cameraId)
+{
+	//_popupLock.Lock();
+	//_popupList.push_back(cameraId);
+	//_popupLock.Unlock();
+	if (_dlg == NULL) return;
+
+	CString msg;
+	msg.Format("%d", cameraId);
+	COPYDATASTRUCT cds;
+	cds.dwData = (ULONG_PTR)WM_TEMPERATURE_ALARM;
+	cds.cbData = strlen(msg);
+	cds.lpData = (PVOID)(LPCTSTR)msg;
+
+	TraceLog(("show SendMessage(%s)", msg));
+	_dlg->SendMessage(WM_COPYDATA, (WPARAM)_dlg->GetSafeHwnd(), (LPARAM)&cds);
+
+
+}
+
+//int FireProcess::popPopup()
+//{
+//	_popupLock.Lock();
+//	int data = -1;
+//	if (_popupList.size() > 0) {
+//		data = _popupList.front();
+//		_popupList.pop_front();
+//	}
+//	_popupLock.Unlock();
+//	return data;
+//}
+
 

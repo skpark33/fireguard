@@ -20,6 +20,7 @@
 #define CLASS_DOWNLOADSTATE		"C_DN"
 #define CLASS_ACK				"C_AK"
 #define CLASS_BYPASS			"C_BP"
+#define CLASS_COMMAND			"C_CD"
 
 #define MAX_BUFFER_LEN			2048
 

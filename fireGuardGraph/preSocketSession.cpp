@@ -60,6 +60,33 @@ void preSocketHandler::push(const char* recvMsg)
 	//TraceLog(("preSocketHandler::push(%s) end", recvMsg));
 }
 
+void preSocketHandler::pushCommand(const char* command, int cameraId, int alarmType)
+{
+	CString response;
+	response.Format("%s/%d/%d", command, cameraId, alarmType);
+	TraceLog(("preSocketHandler::push(%s)", response));
+	ciGuard aGuard(_commandListLock);
+	_commandList.push_back(response);
+}
+
+CString preSocketHandler::popCommand()
+{
+	CString response;
+
+	ciGuard aGuard(_commandListLock);
+	std::list<CString>::iterator itr = _commandList.begin();
+	for (; itr != _commandList.end(); itr++){
+		if (!response.IsEmpty()) {
+			response += ",";
+		}
+		response += *itr;
+	}
+	_commandList.clear();
+	TraceLog(("preSocketHandler::popCommand(%s)", response));
+	return response;
+}
+
+
 UINT
 preSocketHandler::run(LPVOID pParam) {
 	TraceLog(("run()"));
@@ -218,7 +245,16 @@ preSocketSession::run() {
 			//}
 		//}
 		TraceLog(("received=%s", buf));
-		sUtil->talk(client_fd, "ACK", CLASS_ACK, false); // skpark 2010.09.14  ACK 추가
+
+		CString response = preSocketHandler::getInstance()->popCommand();
+		if (response.IsEmpty())
+		{
+			sUtil->talk(client_fd, "ACK", CLASS_ACK, false); // skpark 2010.09.14  ACK 추가
+		}
+		else
+		{
+			sUtil->talk(client_fd, response, CLASS_COMMAND, false); // skpark 2010.09.14  ACK 추가
+		}
 		closesocket(client_fd);
 	}
 	delete this;
