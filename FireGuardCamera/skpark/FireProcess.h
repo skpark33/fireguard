@@ -77,12 +77,12 @@ protected:
 	CString _serialNo;
 	float _simArray[MAX_CAMERA][MAX_SIM_DATA];
 
-	CCriticalSection	_popupLock;
-	list<int>	_popupList;
+	//CCriticalSection	_popupLock;
+	//list<int>	_popupList;
 
-	void _pushPopup(int cameraId);
+//	void _pushPopup(int cameraId);
 public:
-	int popPopup();
+//	int popPopup();
 	
 
 };

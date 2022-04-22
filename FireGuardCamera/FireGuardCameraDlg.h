@@ -62,7 +62,7 @@ public:
 	HTRIGGER m_hTrigger;
 	HSYSLOG	m_hSyslog;
 
-	void ShowScreen(int cameraId);
+	void ShowScreen(int cameraId, int alarmType);
 	//static UINT  ProcessPopup(LPVOID pParam);
 // Implementation
 protected:

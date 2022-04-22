@@ -1,5 +1,9 @@
 #include "stdAfx.h"
 #include "util.h"
+#include <tlhelp32.h>
+#include <shlwapi.h>
+#include <winternl.h>
+#include <afxinet.h>
 #include <fstream> 
 #include "skpark/TraceLog.h"
 #include "NetworkAdapter.h"
@@ -223,6 +227,102 @@ void LicenseUtil::LicenseCheck()
 		TraceLog(("No License file founded"));
 		LICENSE_ERR_CODE = 2;
 	}
+}
+
+unsigned long
+getPid(const char* exename, bool likeCond/*=false*/)
+{
+	TraceLog(("getPid(%s)", exename));
+
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hSnapshot == INVALID_HANDLE_VALUE) {
+		TraceLog(("HANDLE을 생성할 수 없습니다"));
+		return 0;
+	}
+	PROCESSENTRY32 pe32;
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+
+	char strProcessName[512];
+
+	if (!Process32First(hSnapshot, &pe32))	{
+		TraceLog(("Process32First failed."));
+		::CloseHandle(hSnapshot);
+		return 0;
+	}
+
+
+	do 	{
+		//memset(strProcessName, 0, sizeof(strProcessName));
+		//size_t stringLength = strlen(pe32.szExeFile);
+		//for(int i=0; i<stringLength; i++) // 대문자로 전환
+		//	strProcessName[i] = toupper( pe32.szExeFile[i] );
+
+		if (likeCond)
+		{
+			std::string exename1 = pe32.szExeFile;
+			std::string exename2 = exename;
+			::_strlwr((char*)exename1.c_str());
+			::_strlwr((char*)exename2.c_str());
+
+			if (strstr(exename1.c_str(), exename2.c_str()) != NULL) {
+				TraceLog(("process founded(%s)", exename));
+				::CloseHandle(hSnapshot);
+				return pe32.th32ProcessID;
+			}
+		}
+		else if (_stricmp(pe32.szExeFile, exename) == 0) {
+			TraceLog(("process founded(%s)", exename));
+			::CloseHandle(hSnapshot);
+			return pe32.th32ProcessID;
+		}
+
+	} while (Process32Next(hSnapshot, &pe32));
+	TraceLog(("process not founded(%s)", exename));
+	::CloseHandle(hSnapshot);
+
+	return 0;
+}
+
+static BOOL CALLBACK find_hwnd_from_pid_proc(HWND hwnd, LPARAM lParam)
+{
+	if (!IsWindowVisible(hwnd)) return TRUE;
+	DWORD pid;
+	GetWindowThreadProcessId(hwnd, &pid);
+	find_hwnd_from_pid_t *pe = (find_hwnd_from_pid_t *)lParam;
+	if (pe->pid != pid) return TRUE;
+	pe->hwnd = hwnd;
+	return FALSE;
+}
+
+
+HWND
+getWHandle(unsigned long pid)
+{
+	TraceLog(("getWHandle(%ld)", pid));
+	if (pid>0){
+		find_hwnd_from_pid_t e;
+		e.pid = pid;
+		e.hwnd = NULL;
+		EnumWindows(find_hwnd_from_pid_proc, (LPARAM)&e);
+
+		HWND child = e.hwnd;
+		HWND parent = NULL;
+		while (1){
+			parent = GetParent(child);
+			if (!parent){
+				return child;
+			}
+			child = parent;
+		}
+		return e.hwnd;
+	}
+	return (HWND)0;
+}
+HWND
+getWHandle(const char* exename, bool likeCond/*=false*/)
+{
+	TraceLog(("getWHandle(%s)", exename));
+	return getWHandle(getPid(exename, likeCond));
 }
 
 

@@ -5,6 +5,7 @@
 #include "chartdir.h"
 
 #include "skpark/TraceLog.h"
+#include "skpark/util.h"
 #if defined(_WIN32)
 #   include <winsock2.h>
 //  WinSock DLL을 사용할 버전
@@ -17,6 +18,8 @@
 #endif
 
 #define BUF_LEN 4096
+#define WM_TEMPERATURE_ALARM 1049
+
 
 ////////////////////
 // preSocketHandler
@@ -65,26 +68,42 @@ void preSocketHandler::pushCommand(const char* command, int cameraId, int alarmT
 	CString response;
 	response.Format("%s/%d/%d", command, cameraId, alarmType);
 	TraceLog(("preSocketHandler::push(%s)", response));
-	ciGuard aGuard(_commandListLock);
-	_commandList.push_back(response);
-}
+	//ciGuard aGuard(_commandListLock);
+	//_commandList.push_back(response);
 
-CString preSocketHandler::popCommand()
-{
-	CString response;
 
-	ciGuard aGuard(_commandListLock);
-	std::list<CString>::iterator itr = _commandList.begin();
-	for (; itr != _commandList.end(); itr++){
-		if (!response.IsEmpty()) {
-			response += ",";
-		}
-		response += *itr;
+	HWND brwHwnd = getWHandle("FireGuardCamera.exe");
+
+	if (!brwHwnd) {
+		TraceLog(("skpark process not found(%s)", "UTV_brwClient2.exe"));
+		return ;
 	}
-	_commandList.clear();
-	TraceLog(("preSocketHandler::popCommand(%s)", response));
-	return response;
+	
+	COPYDATASTRUCT cds;
+	cds.dwData = (ULONG_PTR)WM_TEMPERATURE_ALARM;
+	cds.cbData = strlen(response);
+	cds.lpData = (PVOID)(LPCTSTR)response;
+
+	TraceLog(("show SendMessage(%s)", response));
+	SendMessageA(brwHwnd, WM_COPYDATA, (WPARAM)0, (LPARAM)&cds);
 }
+
+//CString preSocketHandler::popCommand()
+//{
+//	CString response;
+//
+//	ciGuard aGuard(_commandListLock);
+//	std::list<CString>::iterator itr = _commandList.begin();
+//	for (; itr != _commandList.end(); itr++){
+//		if (!response.IsEmpty()) {
+//			response += ",";
+//		}
+//		response += *itr;
+//	}
+//	_commandList.clear();
+//	TraceLog(("preSocketHandler::popCommand(%s)", response));
+//	return response;
+//}
 
 
 UINT
@@ -246,15 +265,15 @@ preSocketSession::run() {
 		//}
 		TraceLog(("received=%s", buf));
 
-		CString response = preSocketHandler::getInstance()->popCommand();
-		if (response.IsEmpty())
-		{
+		//CString response = preSocketHandler::getInstance()->popCommand();
+		//f (response.IsEmpty())
+		//{
 			sUtil->talk(client_fd, "ACK", CLASS_ACK, false); // skpark 2010.09.14  ACK 추가
-		}
-		else
-		{
-			sUtil->talk(client_fd, response, CLASS_COMMAND, false); // skpark 2010.09.14  ACK 추가
-		}
+		//}
+		//else
+		//{
+		//	sUtil->talk(client_fd, response, CLASS_COMMAND, false); // skpark 2010.09.14  ACK 추가
+		//}
 		closesocket(client_fd);
 	}
 	delete this;

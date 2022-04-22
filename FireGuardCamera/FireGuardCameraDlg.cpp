@@ -1665,10 +1665,10 @@ void CFireGuardCameraDlg::OnBnClickedButtonStreaming()
 
 	if(m_StreamingDlg[m_selected].m_hStream)
 	{
-		if (IDYES != MessageBox(("현재 영상화면을 닫으시겠습니까 ?"), ("Streaming"), MB_YESNO))
-		{
-			return;
-		}
+		//if (IDYES != MessageBox(("현재 영상화면을 닫으시겠습니까 ?"), ("Streaming"), MB_YESNO))
+		//{
+		//	return;
+		//}
 
 		m_StreamingDlg[m_selected].StopStreaming();
 
@@ -2126,7 +2126,17 @@ BOOL CFireGuardCameraDlg::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct
 	switch (pCopyDataStruct->dwData)
 	{
 	case WM_TEMPERATURE_ALARM:
-		 ShowScreen(atoi((LPCTSTR)pCopyDataStruct->lpData));
+		// response.Format("POPUP/%d/%d", command, cameraId, alarmType);
+		CString response = (LPCTSTR)pCopyDataStruct->lpData;
+		if (response.GetLength() > 8) {
+			int pos = 0;
+			CString command = response.Tokenize("/", pos);
+			CString cameraId = response.Tokenize("/", pos);
+			CString alarmType = response.Tokenize("/", pos);
+
+
+				ShowScreen(atoi(cameraId), atoi(alarmType));
+		}
 	
 	}
 
@@ -2135,14 +2145,32 @@ BOOL CFireGuardCameraDlg::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct
 	return retval;
 }
 
-void CFireGuardCameraDlg::ShowScreen(int cameraId)
+void CFireGuardCameraDlg::ShowScreen(int cameraId, int alarmType)
 {
-	TraceLog(("ShowScreen(%d)", cameraId));
+	TraceLog(("ShowScreen(%d, %d)", cameraId, alarmType));
 
 	/*if (theApp.m_hSelectCamera) 
 		SPIDER_DestroyCameraHandle(theApp.m_hSelectCamera);
 	theApp.m_hSelectCamera = NULL;*/
 	TraceLog(("ShowScreen1(%d)", cameraId));
+	
+	CString title;
+	if (alarmType == 0) {
+		title.Format("카메라 %s", rtspurl);  //skpark
+	}
+	else if (alarmType == 1) {
+		CTime now = CTime::GetCurrentTime();
+		title.Format("온도 이상 알람 발생 :  %04d/%02d/%02d %02d:%02d:%02d",
+			now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond());  //skpark
+	}
+	else  if (alarmType == 2) {
+		CTime now = CTime::GetCurrentTime();
+		title.Format("온도 상승 추세 발생 :  %04d/%02d/%02d %02d:%02d:%02d",
+			now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond());  //skpark
+	}
+
+	TraceLog(("show4 skpark : title %s", title));
+	
 	bool changed = false;
 	if (m_selected < 0 || cameraId != m_selected) {
 		theApp.m_hSelectCamera = theApp.m_allCamera[cameraId];
@@ -2153,6 +2181,14 @@ void CFireGuardCameraDlg::ShowScreen(int cameraId)
 	if (changed == false && (m_StreamingDlg[cameraId].m_hStream || m_StreamingDlg[cameraId].GetSafeHwnd() == NULL)) {
 		m_StreamingDlg[cameraId].ShowWindow(SW_SHOW);
 		m_StreamingDlg[cameraId].SetWindowPos(&CWnd::wndTopMost, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+
+		if (alarmType == 0) {
+			m_StreamingDlg[cameraId].SetWindowPos(NULL, 0, 0, 640, 480, SWP_NOMOVE);
+		}
+		else {
+			m_StreamingDlg[cameraId].SetWindowPos(NULL, 0, 0, 960, 720, SWP_NOMOVE);
+		}
+		m_StreamingDlg[cameraId].SetWindowText(title);  //skpark
 		return;
 	}
 	TraceLog(("ShowScreen2(%d)", cameraId));
@@ -2179,10 +2215,7 @@ void CFireGuardCameraDlg::ShowScreen(int cameraId)
 		return;
 	}
 
-	CString title;
-	title.Format("카메라 %s", rtspurl);  //skpark
 
-	TraceLog(("show4 skpark : title %s", title));
 
 	if (m_StreamingDlg[cameraId].GetSafeHwnd() == NULL) {
 		m_StreamingDlg[cameraId].Create(CStreamingDlg::IDD, NULL);
@@ -2190,7 +2223,12 @@ void CFireGuardCameraDlg::ShowScreen(int cameraId)
 	} 
 	m_StreamingDlg[cameraId].ShowWindow(SW_SHOW);
 	m_StreamingDlg[cameraId].SetWindowPos(&CWnd::wndTopMost, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
-
+	if (alarmType == 0) {
+		m_StreamingDlg[cameraId].SetWindowPos(NULL, 0, 0, 640, 480, SWP_NOMOVE);
+	}
+	else {
+		m_StreamingDlg[cameraId].SetWindowPos(NULL, 0, 0, 960, 720, SWP_NOMOVE);
+	}
 	if (false == m_StreamingDlg[cameraId].StartStreaming(rtspurl[cameraId]))
 	{
 		m_StreamingDlg[cameraId].StopStreaming();
