@@ -251,6 +251,13 @@ getWHandle(const char* exename, bool likeCond/*=false*/)
 	return getWHandle(getPid(exename, likeCond));
 }
 
+CString LoadStringById(UINT nID)
+{
+	CString strValue;
+	if (!strValue.LoadString(nID)) return _T("");
+	return strValue;
+}
+
 
 
 

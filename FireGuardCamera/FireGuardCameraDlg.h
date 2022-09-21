@@ -8,7 +8,8 @@
 #include "StreamingDlg.h"
 #include "afxwin.h"
 
-
+#include <list>
+#include <map>
 
 
 // CFireGuardCameraDlg dialog
@@ -16,7 +17,7 @@ class CFireGuardCameraDlg : public CDialog
 {
 // Construction
 public:
-	CFireGuardCameraDlg(CWnd* pParent = NULL);	// standard constructor
+	CFireGuardCameraDlg(bool hikvision = false, CWnd* pParent = NULL);	// standard constructor
 
 // Dialog Data
 	enum { IDD = IDD_TESTDLG_DIALOG };
@@ -64,6 +65,21 @@ public:
 
 	void ShowScreen(int cameraId, int alarmType);
 	//static UINT  ProcessPopup(LPVOID pParam);
+
+
+	std::map<CString, CString>				m_idIpMap;
+	std::list<CString>	m_idList;
+	bool m_isHikvision;
+	void SaveCameraInfo(const char* id, const char* ip, const char* pwd);
+	void AddCenterToStarter(const char* id, const char* ip, const char* pwd);
+	void DeleteCenterToStarter(const char* id);
+	void InsertCameraInfo(const char* id, const char* ip, const char* pwd,  bool save = true);
+	void GetCameraInfoFromIni();
+	void RunGuadianCenter(int nSel);
+	void DelCamera(const char* szId);
+
+
+
 // Implementation
 protected:
 	HICON m_hIcon;
@@ -119,4 +135,7 @@ public:
 	afx_msg void OnBnClickedButtonLogClear();
 
 	afx_msg BOOL OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct);
+	afx_msg void OnBnClickedButtonAddCamera();
+	afx_msg void OnBnClickedButtonDelCamera();
+	afx_msg void OnBnClickedButtonChangeIp();
 };

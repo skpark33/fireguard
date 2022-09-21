@@ -30,6 +30,7 @@
 #define IDD_CUSTOM_CTRL                 135
 #define IDD_DIGITAL_IO_INFO             136
 #define IDD_THERMAL_TEMPERATURE_INFO    137
+#define IDD_DLG_DETAIL                  138
 #define IDD_NETWORK_IPADDR_INFO         148
 #define IDD_USER_INFO                   149
 #define IDD_MOTION_INFO                 153
@@ -48,6 +49,7 @@
 #define IDC_COMBO_EXPOSURE_MODE         266
 #define IDC_COMBO_DIRECTION_SENSITIVITY 275
 #define IDC_BUTTON_DISCOVERY            1000
+#define IDC_BUTTON_ADD_CAMERA           1001
 #define IDC_LIST_CAMERA                 1002
 #define IDC_EDIT_CAMERA_INFO            1003
 #define IDD_FEATURE_INFO                1003
@@ -158,12 +160,14 @@
 #define IDC_BUTTON_PPPOE                1036
 #define IDC_EDIT_WRITE                  1037
 #define IDC_COMBO_VIDEO_OUT_TYPE        1037
-#define IDC_BUTTON_SNAPSHOT2            1037
 #define IDC_BUTTON_LOG_CLEAR            1037
 #define IDC_BUTTON_WRITE                1038
 #define IDC_BUTTON_VIDEO_OUT_MODIFY     1038
+#define IDC_BUTTON_DEL_CAMERA           1038
 #define IDC_BUTTON_READ                 1039
 #define IDC_COMBO_RECORD_TYPE           1039
+#define IDC_BUTTON_DEL_CAMERA2          1039
+#define IDC_BUTTON_CHANGE_IP            1039
 #define IDC_SLIDER_GAMMA                1040
 #define IDC_EDIT_READ                   1040
 #define IDC_BUTTON_DEFOG_MODIFY         1040
@@ -754,7 +758,9 @@
 #define IDC_STATIC_TEMP_VALID_ENTIRE    1632
 #define IDC_STATIC_TEMP_VALID_1         1633
 #define IDC_STATIC_TEMP_VALID_2         1634
+#define IDC_BT_DUPCHECK                 1634
 #define IDC_STATIC_TEMP_VALID_3         1635
+#define IDC_IPADDRESS                   1635
 #define IDC_STATIC_TEMP_VALID_4         1636
 #define IDC_EDIT_TEMP_CENTER_6          1637
 #define IDC_EDIT_TEMP_MIN_6             1638
@@ -809,9 +815,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        138
+#define _APS_NEXT_RESOURCE_VALUE        139
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1633
+#define _APS_NEXT_CONTROL_VALUE         1637
 #define _APS_NEXT_SYMED_VALUE           119
 #endif
 #endif

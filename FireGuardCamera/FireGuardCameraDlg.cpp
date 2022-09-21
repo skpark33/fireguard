@@ -33,6 +33,7 @@
 #include "skpark/TraceLog.h"
 #include "skpark/FireProcess.h"
 #include "skpark/util.h"
+#include "ThermalDetailDlg.h"
 
 static char gszCurDir[MAX_PATH] = "";
 
@@ -76,8 +77,9 @@ END_MESSAGE_MAP()
 // CFireGuardCameraDlg dialog
 
 
-CFireGuardCameraDlg::CFireGuardCameraDlg(CWnd* pParent /*=NULL*/)
+CFireGuardCameraDlg::CFireGuardCameraDlg(bool hikvision , CWnd* pParent /*=NULL*/)
 	: CDialog(CFireGuardCameraDlg::IDD, pParent)
+	, m_isHikvision(hikvision)
 	, m_foundedCount(0)  //skpark in your area
 	, m_initDone(false)
 	, m_stopPolling(false)
@@ -171,6 +173,9 @@ BEGIN_MESSAGE_MAP(CFireGuardCameraDlg, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON_SNMP, &CFireGuardCameraDlg::OnBnClickedButtonSnmp)
 	ON_BN_CLICKED(IDC_BUTTON_PPPOE, &CFireGuardCameraDlg::OnBnClickedButtonPppoe)
 	ON_BN_CLICKED(IDC_BUTTON_LOG_CLEAR, &CFireGuardCameraDlg::OnBnClickedButtonLogClear)
+	ON_BN_CLICKED(IDC_BUTTON_ADD_CAMERA, &CFireGuardCameraDlg::OnBnClickedButtonAddCamera)
+	ON_BN_CLICKED(IDC_BUTTON_DEL_CAMERA, &CFireGuardCameraDlg::OnBnClickedButtonDelCamera)
+	ON_BN_CLICKED(IDC_BUTTON_CHANGE_IP, &CFireGuardCameraDlg::OnBnClickedButtonChangeIp)
 END_MESSAGE_MAP()
 
 
@@ -239,6 +244,15 @@ BOOL CFireGuardCameraDlg::OnInitDialog()
 
 	TraceLog(("Monitor Size = %d : %d ", rcDesk.Width(), rcDesk.Height()));
 	TraceLog(("Windows Size = %d : %d ", rcWindow.Width(), rcWindow.Height()));  //621x590
+
+	GetDlgItem(IDC_BUTTON_SNAPSHOT)->EnableWindow(!m_isHikvision);
+	GetDlgItem(IDC_BUTTON_IMPORT)->EnableWindow(!m_isHikvision);
+	GetDlgItem(IDC_BUTTON_EXPORT)->EnableWindow(!m_isHikvision);
+	GetDlgItem(IDC_BUTTON_STREAMING)->EnableWindow(!m_isHikvision);
+
+	GetDlgItem(IDC_BUTTON_ADD_CAMERA)->EnableWindow(m_isHikvision);
+	GetDlgItem(IDC_BUTTON_DEL_CAMERA)->EnableWindow(m_isHikvision);
+	GetDlgItem(IDC_BUTTON_CHANGE_IP)->EnableWindow(m_isHikvision);
 
 	::SetWindowPos(this->m_hWnd, HWND_TOP, 10, 10, -1, -1, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 	
@@ -366,6 +380,7 @@ void CFireGuardCameraDlg::StartDiscovery()
 
 
 	m_List_Camera.DeleteAllItems();
+	m_idIpMap.clear();
 
 	//ST_SPIDER_DISCOVERY_CAMEAR_INFO stInfo;
 	for (int i = 0; i < m_foundedCount; i++)
@@ -373,25 +388,28 @@ void CFireGuardCameraDlg::StartDiscovery()
 		//SPIDER_GetDiscoveryCameraInfo(i, &stInfo);
 		memset(&(m_stInfo[i]), 0x00, sizeof(ST_SPIDER_DISCOVERY_CAMEAR_INFO));
 
-		SPIDER_GetDiscoveryCameraInfo(i, &(m_stInfo[i]));
+		if (!m_isHikvision)
+		{
+			SPIDER_GetDiscoveryCameraInfo(i, &(m_stInfo[i]));
+		}
 
-		sztext.Format(("%d"), i+1);
-		m_List_Camera.InsertItem(i, sztext);
+		CString id;
+		id.Format(("%d"), i+1);
+		m_List_Camera.InsertItem(i, id);
 
+		
 
 		int ncol = 1;
 
 		sztext = m_stInfo[i].strVendorName;
 		m_List_Camera.SetItemText(i, ncol++, sztext);
 
-
 		sztext = m_stInfo[i].strIpAddress;
 		m_List_Camera.SetItemText(i, ncol++, sztext);
-
+		this->m_idIpMap[id] = sztext; //skpark
 
 		sztext = m_stInfo[i].strModelName;
 		m_List_Camera.SetItemText(i, ncol++, sztext);
-
 
 		sztext = m_stInfo[i].strMacAddr;
 		m_List_Camera.SetItemText(i, ncol++, sztext);
@@ -406,7 +424,12 @@ void CFireGuardCameraDlg::StartDiscovery()
 		sztext = m_stInfo[i].strDeviceDes != NULL ? m_stInfo[i].strDeviceDes : "not specified" ;
 		m_List_Camera.SetItemText(i, ncol++, sztext);
 
+		
+
+
 	}
+
+	GetCameraInfoFromIni();
 
 
 	sztext.Format(("Total Discovered Camera Count : %d"), m_foundedCount);
@@ -473,11 +496,37 @@ void CFireGuardCameraDlg::Polling()
 void CFireGuardCameraDlg::GetAllCamera()  
 {
 	m_initDone = false;
-	for (int i = 0; i < m_foundedCount; i++) {
-		SelectOneCamera(i);
+	if (!m_isHikvision) {
+		for (int i = 0; i < m_foundedCount; i++) {
+			SelectOneCamera(i);
+		}
+	}
+	else {
+		for (int i = 0; i < m_foundedCount; i++) {
+			//RunGuadianCenter(i);  //Starter 에서 하므로 여기서는 Run 하지 않는다.
+		}
 	}
 	FireProcess::getInstance()->SetDlg(this);
 	m_initDone = true;
+}
+
+void CFireGuardCameraDlg::RunGuadianCenter(int nSel)
+{
+	CString ip = m_stInfo[nSel].strIpAddress;
+	CString pwd = m_stInfo[nSel].strDeviceDes;
+	CString id = m_stInfo[nSel].strDeviceName;
+
+	CString arg;
+	arg.Format("+id %s +ip %s +pwd %s +fire", id, ip, pwd);
+
+	HINSTANCE nRet = ShellExecuteA(NULL, NULL, "GuardianCenter.exe", arg, gszCurDir, SW_SHOWNORMAL);
+	if (int(nRet) < 32)
+	{
+		TraceLog(("ShellExecute GuardianCenter.exe %s Error=%d", arg, nRet));
+		return;
+	}
+
+	TraceLog(("ShellExecute GuardianCenter.exe %s succeed=%d", arg, nRet));
 }
 
 void CFireGuardCameraDlg::SelectOneCamera(int nSel)
@@ -1695,7 +1744,7 @@ void CFireGuardCameraDlg::OnBnClickedButtonStreaming()
 	}
 	if (strlen(rtspurl[m_selected]) == 0)
 	{
-		MessageBox(("Failed to get url address."));
+		MessageBox(("Failed to get url address. 1"));
 		return;
 	}
 
@@ -2072,9 +2121,17 @@ void CFireGuardCameraDlg::OnBnClickedButtonPppoe()
 
 void CFireGuardCameraDlg::OnBnClickedButtonOpenWeb()
 {
-	if (theApp.m_hSelectCamera == NULL) {
-		MessageBox(("Select camera."));
-		return;
+	if (m_isHikvision) {
+		if (m_selected < 0) {
+			MessageBox(("Select camera."));
+			return;
+		}
+	}
+	else {
+		if (theApp.m_hSelectCamera == NULL) {
+			MessageBox(("Select camera."));
+			return;
+		}
 	}
 	int nSel = m_List_Camera.GetSelectionMark();
 	if (nSel < 0) { return; }
@@ -2134,8 +2191,11 @@ BOOL CFireGuardCameraDlg::OnCopyData(CWnd* pWnd, COPYDATASTRUCT* pCopyDataStruct
 			CString cameraId = response.Tokenize("/", pos);
 			CString alarmType = response.Tokenize("/", pos);
 
-
+			if (m_isHikvision) {
+				// hikvision 을 위한 showScreen code 가 이곳에 필요함.
+			} else {
 				ShowScreen(atoi(cameraId), atoi(alarmType));
+			}
 		}
 	
 	}
@@ -2160,13 +2220,13 @@ void CFireGuardCameraDlg::ShowScreen(int cameraId, int alarmType)
 	}
 	else if (alarmType == 1) {
 		CTime now = CTime::GetCurrentTime();
-		title.Format("온도 이상 알람 발생 :  %04d/%02d/%02d %02d:%02d:%02d",
-			now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond());  //skpark
+		title.Format("카메라 %s 온도 이상 알람 발생 :  %04d/%02d/%02d %02d:%02d:%02d",
+			rtspurl,now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond());  //skpark
 	}
 	else  if (alarmType == 2) {
 		CTime now = CTime::GetCurrentTime();
-		title.Format("온도 상승 추세 발생 :  %04d/%02d/%02d %02d:%02d:%02d",
-			now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond());  //skpark
+		title.Format("카메라 %s 온도 상승 추세 발생 :  %04d/%02d/%02d %02d:%02d:%02d",
+			rtspurl, now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond());  //skpark
 	}
 
 	TraceLog(("show4 skpark : title %s", title));
@@ -2211,7 +2271,7 @@ void CFireGuardCameraDlg::ShowScreen(int cameraId, int alarmType)
 	}
 	if (strlen(rtspurl[cameraId]) == 0)
 	{
-		MessageBox(("Failed to get url address."));
+		MessageBox(("Failed to get url address. 2"));
 		return;
 	}
 
@@ -2238,4 +2298,326 @@ void CFireGuardCameraDlg::ShowScreen(int cameraId, int alarmType)
 	}
 	TraceLog(("ShowScreen5(%d)", cameraId));
 
+}
+
+void CFireGuardCameraDlg::OnBnClickedButtonAddCamera()
+{
+	/*
+	struct ST_SPIDER_DISCOVERY_CAMEAR_INFO
+	{
+		CHAR			strDeviceName[64];
+		CHAR			strModelName[64];
+		CHAR			strSerialNum[64];
+		CHAR			strMacAddr[64];
+		CHAR			strVendorName[64];
+		CHAR			strFirmware[64];
+		CHAR			strDeviceURL[64];
+		__time32_t		DeviceStartTime;
+		CHAR			strDeviceDes[64];
+		USHORT			nsDiscoverySupport; // bitmask ; upnp 0x0001, zeroconf 0x0002, onvif 0x0004
+		CHAR			strIpAddress[64];
+		CHAR			strSubnetMask[64];
+		CHAR			strGateway[64];
+	};
+	*/
+
+	if (m_foundedCount >= MAX_CAMERA) {
+		AfxMessageBox("최대 등록 카메라 수를 초과했습니다");
+		return;
+	}
+
+	CThermalDetailDlg aDlg;
+	aDlg.SetIdMap(&m_idIpMap);
+	if (aDlg.DoModal() == IDOK)
+	{
+		CString ip = aDlg.m_ipAddress;
+		CString id = aDlg.m_cameraId;
+		CString pwd = aDlg.m_pwd;
+
+		InsertCameraInfo(id, ip, pwd);
+	}
+}
+
+void CFireGuardCameraDlg::InsertCameraInfo(const char* id, const char* ip, const char* pwd, bool save /* = true*/)
+{
+	int i = m_foundedCount;
+
+	strcpy(m_stInfo[i].strDeviceName, id);
+	strcpy(m_stInfo[i].strDeviceDes, pwd);
+	strcpy(m_stInfo[i].strIpAddress, ip);
+	strcpy(m_stInfo[i].strModelName, "DS-2TD2617-6P/A");
+	strcpy(m_stInfo[i].strVendorName, "Hikvision");
+	CString url = "http://";
+	url += ip;
+	strcpy(m_stInfo[i].strDeviceURL, url);
+
+	m_List_Camera.InsertItem(i, id);
+
+	int ncol = 1;
+	CString sztext = m_stInfo[i].strVendorName;
+	m_List_Camera.SetItemText(i, ncol++, sztext);
+
+	sztext = m_stInfo[i].strIpAddress;
+	m_List_Camera.SetItemText(i, ncol++, sztext);
+
+	sztext = m_stInfo[i].strModelName;
+	m_List_Camera.SetItemText(i, ncol++, sztext);
+
+	sztext = m_stInfo[i].strMacAddr;
+	m_List_Camera.SetItemText(i, ncol++, sztext);
+
+	sztext = "";
+	sztext = m_stInfo[i].strDeviceDes != NULL ? m_stInfo[i].strDeviceDes : "not specified";
+	m_List_Camera.SetItemText(i, ncol++, sztext);
+
+
+	m_foundedCount++;
+
+	TraceLog(("OnBnClickedButtonAddCamera()\n"));
+
+	this->m_idIpMap[id] = ip;
+	m_idList.push_back(id);
+	if (save) {
+		SaveCameraInfo(id, ip, pwd);
+	}
+}
+
+void CFireGuardCameraDlg::SaveCameraInfo(const char* id, const char* ip, const char* pwd)
+{
+	CString iniPath = UBC_CONFIG_PATH;
+	iniPath += UBCBRW_INI;
+
+	CString newList;
+	std::list<CString>::iterator itr;
+	for (itr = m_idList.begin(); itr != m_idList.end(); itr++){
+		if (!newList.IsEmpty()){
+			newList += ",";
+		}
+		newList += *itr;
+	}
+	WritePrivateProfileString("FIRE_WATCH_CAMERA", "IdList", newList, iniPath);
+
+	CString entry;
+	entry.Format("FIRE_WATCH_CAMERA_%s",id);
+
+	WritePrivateProfileString(entry, "ID", id, iniPath);
+	WritePrivateProfileString(entry, "IP", ip, iniPath);
+	WritePrivateProfileString(entry, "PWD", pwd, iniPath);
+
+	AddCenterToStarter(id,ip,pwd);
+
+}
+
+void CFireGuardCameraDlg::AddCenterToStarter(const char* id, const char* ip, const char* pwd)
+{
+	HWND sttHwnd = ::FindWindow(NULL, "Guardian Starter");
+	if (!sttHwnd) {
+		// Starter ini 파일에 직접 Write 해야 한다.		
+		return ;
+	}
+
+	/*
+	app_info.appId = token.nextToken().c_str();
+					app_info.argument = token.nextToken().c_str();
+					CString strBool = token.nextToken().c_str();
+					app_info.autoStartUp = (strBool == "TRUE") ? 1:0;
+					app_info.binaryName = token.nextToken().c_str();
+					app_info.debug = token.nextToken().c_str();
+					app_info.initSleepSecond = atoi(token.nextToken().c_str());
+					strBool = token.nextToken().c_str();
+					app_info.isPrimitive = (strBool == "TRUE") ? 1:0;
+					strBool = token.nextToken().c_str();
+					app_info.monitored = (strBool == "TRUE") ? 1:0;
+					app_info.pid = atoi(token.nextToken().c_str());
+					app_info.preRunningApp = token.nextToken().c_str();
+					app_info.properties = token.nextToken().c_str();
+					app_info.runningType = token.nextToken().c_str();
+					strBool = token.nextToken().c_str();
+					app_info.runTimeUpdate = (strBool == "TRUE") ? 1:0;
+					app_info.startTime = token.nextToken().c_str();
+					app_info.status = token.nextToken().c_str();
+					app_info.adminState = true; // ON
+	*/
+	CString msgData = "ADD&";
+
+	// appId
+	msgData += "CENTER";
+	msgData += id;
+	msgData += "&";
+	// argument
+	msgData += " +id ";
+	msgData += id;
+	msgData += " +ip ";
+	msgData += ip;
+	msgData += " +pwd ";
+	msgData += pwd;
+	msgData += " +fire&";
+	//
+	msgData += "TRUE&";// autoStartup
+	msgData += "GuardianCenter.exe&"; // binaryName
+	msgData += "&";  // debug;
+	msgData += "5&"; // initSleepSecond
+	msgData += "TRUE&";// isPrimitive 
+	msgData += "TRUE&";// monitored
+	msgData += "0&";  // pid;
+	msgData += "&";  // preRunningApp;
+	msgData += "&";  // properties;
+	msgData += "FG&";  // runningType;
+	msgData += "FALSE&";// runTimeUpdate
+	msgData += "&";  // startTime;
+	msgData += "Inactive&";  // status;
+	
+	COPYDATASTRUCT appInfo;
+	appInfo.dwData = 100;  // Add
+	appInfo.lpData = (char*)msgData.GetBuffer();
+	appInfo.cbData = msgData.GetLength() + 1;
+
+	::SendMessage(sttHwnd, WM_COPYDATA, NULL, (LPARAM)&appInfo);
+
+	TraceLog(("sendMessage to STT (ARG=%s)", msgData));
+	::Sleep(1000);
+	return;
+}
+
+void CFireGuardCameraDlg::GetCameraInfoFromIni()
+{
+	CString iniPath = UBC_CONFIG_PATH;
+	iniPath += UBCBRW_INI;
+
+	char buf[1024];
+	memset(buf, 0x00, 1024);
+	GetPrivateProfileStringA("FIRE_WATCH_CAMERA", "IdList", "", buf, 1024, iniPath);
+
+	CString newList = buf;
+	if (newList.IsEmpty()) {
+		return;
+	}
+	m_idList.clear();
+
+	int pos = 0;
+	CString id = newList.Tokenize(",", pos);
+	while (!id.IsEmpty())
+	{
+		CString entry;
+		entry.Format("FIRE_WATCH_CAMERA_%s", id);
+
+		
+		memset(buf, 0x00, 1024);
+		GetPrivateProfileStringA(entry, "IP", "", buf, 1024, iniPath);
+		CString ip = buf;
+
+		memset(buf, 0x00, 1024);
+		GetPrivateProfileStringA(entry, "PWD", "", buf, 1024, iniPath);
+		CString pwd = buf;
+
+		InsertCameraInfo(id, ip, pwd, false);
+		id = newList.Tokenize(",", pos);
+	}
+}
+
+
+void CFireGuardCameraDlg::OnBnClickedButtonDelCamera()
+{
+	if (m_selected == -1)
+	{
+		MessageBox(("선택된 카메라가 없습니다. 위 목록에서 카메라를 선택해주세요"));
+		return;
+	}
+
+	int nSel = m_List_Camera.GetSelectionMark();
+	if (nSel == -1) return;
+
+	char szId[100] = "";
+	m_List_Camera.GetItemText(nSel, 0, szId, 50);
+	DelCamera(szId);
+}
+
+void CFireGuardCameraDlg::DelCamera(const char* szId)
+{
+	CString iniPath = UBC_CONFIG_PATH;
+	iniPath += UBCBRW_INI;
+
+	CString newList;
+	std::list<CString>::iterator itr;
+	CString deleteId;
+	for (itr = m_idList.begin(); itr != m_idList.end(); ){
+		CString id = (*itr);
+		if (id == szId) {
+			TraceLog(("%d deleted", m_selected));
+			m_idList.erase(itr++);
+			deleteId = id;
+			continue;
+		}
+		else{
+			++itr;
+		}
+		if (!newList.IsEmpty()){
+			newList += ",";
+		}
+		newList += id;
+	}
+	if (!deleteId.IsEmpty()) {
+		WritePrivateProfileString("FIRE_WATCH_CAMERA", "IdList", newList, iniPath);
+		m_idIpMap.erase(deleteId);
+		DeleteCenterToStarter(deleteId);
+		OnBnClickedButtonDiscovery();
+	}
+}
+
+
+void CFireGuardCameraDlg::DeleteCenterToStarter(const char* id)
+{
+	HWND sttHwnd = ::FindWindow(NULL, "Guardian Starter");
+	if (!sttHwnd) {
+		// Starter ini 파일에 직접 Write 해야 한다.		
+		return;
+	}
+	
+	CString msgData = "DELETE&";
+
+	// appId
+	msgData += "CENTER";
+	msgData += id;
+	msgData += "&";
+	
+	COPYDATASTRUCT appInfo;
+	appInfo.dwData = 100;  // DELETE
+	appInfo.lpData = (char*)msgData.GetBuffer();
+	appInfo.cbData = msgData.GetLength() + 1;
+
+	::SendMessage(sttHwnd, WM_COPYDATA, NULL, (LPARAM)&appInfo);
+
+	TraceLog(("sendMessage to STT (ARG=%s)", msgData));
+	::Sleep(1000);
+	return;
+}
+
+
+void CFireGuardCameraDlg::OnBnClickedButtonChangeIp()
+{
+	if (m_selected == -1)
+	{
+		MessageBox(("선택된 카메라가 없습니다. 위 목록에서 카메라를 선택해주세요"));
+		return;
+	}
+
+	int nSel = m_List_Camera.GetSelectionMark();
+	if (nSel == -1) return;
+
+	char szId[100] = "";
+	m_List_Camera.GetItemText(nSel, 0, szId, 50);
+	char szIp[100] = "";
+	m_List_Camera.GetItemText(nSel, 2, szIp, 50);
+
+	CThermalDetailDlg aDlg(szId, szIp);
+	aDlg.SetIdMap(&m_idIpMap);
+	if (aDlg.DoModal() == IDOK)
+	{
+		CString ip = aDlg.m_ipAddress;
+		CString id = aDlg.m_cameraId;
+		CString pwd = aDlg.m_pwd;
+
+		DelCamera(id);
+		InsertCameraInfo(id, ip, pwd);
+	}
 }

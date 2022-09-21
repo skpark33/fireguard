@@ -229,3 +229,90 @@ std::string UTF8ToANSIString(std::string strRetData){
 #endif
 	return strRetData;
 }
+
+char* AnsiToUTF8(const char *szAnsiString)
+{
+#if defined(_WIN32) || defined(_WIN64)
+	if (szAnsiString == NULL || strlen(szAnsiString) == 0)
+	{
+		OutputDebugString("AnsiToUTF8 >>> input param is NULL!");
+		return NULL;
+	}
+	// AnsiToUnicode
+	// 1. ANSI(multibyte) Length
+	int wcsLen = ::MultiByteToWideChar(CP_ACP, NULL, szAnsiString, (int)strlen(szAnsiString), NULL, 0);
+	wchar_t* wszUnicodeString = new wchar_t[(size_t)wcsLen + 1];
+
+	// 2. ANSI(multibyte) ---> unicode
+	::MultiByteToWideChar(CP_ACP, NULL, szAnsiString, (int)strlen(szAnsiString), wszUnicodeString, wcsLen);
+	wszUnicodeString[wcsLen] = '\0';
+
+	// unicode to UTF8
+	// 3. utf8 Length
+	int UTF8Len = ::WideCharToMultiByte(CP_UTF8, NULL, wszUnicodeString, (int)wcslen(wszUnicodeString), NULL, 0, NULL, NULL);
+	char* szUTF8 = new char[(size_t)UTF8Len + 1];
+
+	//4. unicode ---> utf8
+	::WideCharToMultiByte(CP_UTF8, NULL, wszUnicodeString, (int)wcslen(wszUnicodeString), szUTF8, UTF8Len, NULL, NULL);
+	szUTF8[UTF8Len] = '\0';
+
+	delete[] wszUnicodeString;
+	wszUnicodeString = NULL;
+
+	return szUTF8;
+
+#else
+	if (NULL == szAnsiString)
+	{
+		return NULL;
+	}
+	char *outbuf = 0;
+	if (szAnsiString)
+	{
+		iconv_t cd = iconv_open("UTF-8", "EUC-CN");
+		if (cd)
+		{
+			size_t contlen = strlen(szAnsiString);
+			size_t outbuflen = contlen * 3 + 1;
+			outbuf = new char[outbuflen];
+			memset(outbuf, 0, outbuflen);
+
+			char *inptr = const_cast<char*>(szAnsiString);
+			char *outptr = outbuf;
+
+			size_t inlen = contlen;
+			size_t outlen = outbuflen;
+			if (iconv(cd, &inptr, &inlen, &outptr, &outlen) == (size_t)(-1))
+			{
+				outbuf = 0;
+			}
+
+			iconv_close(cd);
+		}
+	}
+	return outbuf;
+#endif
+}
+
+std::string ANSIToUTF8String(const char *pAnsiString)
+{
+	std::string strUTF8;
+	if (pAnsiString != NULL)
+	{
+		char *pBuf = AnsiToUTF8(pAnsiString);
+		if (pBuf != NULL)
+		{
+			strUTF8 = pBuf;
+			delete[] pBuf;
+		}
+	}
+
+	return strUTF8;
+}
+
+std::string ANSIToUTF8String(std::string strRetData){
+#if defined(_WIN32) || defined(_WIN64)
+	strRetData = ANSIToUTF8String(strRetData.c_str());
+#endif
+	return strRetData;
+}

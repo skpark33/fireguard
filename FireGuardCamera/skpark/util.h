@@ -16,3 +16,6 @@ typedef struct {
 static BOOL CALLBACK find_hwnd_from_pid_proc(HWND hwnd, LPARAM lParam);
 HWND getWHandle(unsigned long pid);
 HWND getWHandle(const char* exename, bool likeCond=false);
+
+CString LoadStringById(UINT nID);
+

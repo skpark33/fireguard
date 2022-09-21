@@ -156,10 +156,12 @@ void CThresholdHandler::OnStop()
 		if (m_isAniPlay)
 		{
 			m_aniCtrl->Stop();
+
+			TraceLog(("Sound Stop..."));
+			PlaySound(NULL, 0, 0);
+			m_isAniPlay = false;
+			m_aniCtrl->ShowWindow(SW_HIDE);
 		}
-		PlaySound(NULL, 0, 0);
-		m_isAniPlay = false;
-		m_aniCtrl->ShowWindow(SW_HIDE);
 	}
 }
 
@@ -181,10 +183,13 @@ bool  CThresholdHandler::InitAnimation()
 
 bool  CThresholdHandler::RunAlarmSound(double value)
 {
+	//TraceLog(("RunAlarmSound1, m_thresholdMax = %f", m_thresholdMax));
 	if ( m_aniCtrl && value > m_thresholdMax && value != _NO_VALUE_)
 	{
+		TraceLog(("RunAlarmSound2, m_thresholdMax = %f ,%f", value, m_thresholdMax));
 		if (!m_isAniPlay)
 		{
+			TraceLog(("RunAlarmSound3, m_thresholdMax = %f ,%f", value, m_thresholdMax));
 			this->_RunAlarmSound();
 		}
 		return true;
@@ -262,7 +267,8 @@ CfireGuardGraphDlg::CfireGuardGraphDlg(CWnd* pParent /*=NULL*/)
 	char serviceUrl[1024];
 	memset(serviceUrl, 0x00, 1024);
 	GetPrivateProfileString("FIRE_WATCH", "SMS_URL", 
-		"http://qrcode-dev.ap-northeast-2.elasticbeanstalk.com/smssend", serviceUrl, 1023, iniPath);
+	//	"http://qrcode-dev.ap-northeast-2.elasticbeanstalk.com/smssend", serviceUrl, 1023, iniPath);
+	"http://qrcode.ap-northeast-2.elasticbeanstalk.com/smssend", serviceUrl, 1023, iniPath);
 	m_smsURL = serviceUrl;
 
 	for (int i = 0; i < MAX_CAMERA; i++)
@@ -709,9 +715,53 @@ static void shiftData(double *data, int len, double newValue)
 //
 // The data acquisition routine. In this demo, this is invoked every 250ms.
 //
+bool isAllTrue(bool*  array, int max)
+{
+	for (int i = 0; i < max; i++) {
+		if (array[i] == false) return false;
+	}
+	return true;
+}
+bool isAllFalse(bool*  array, int max)
+{
+	for (int i = 0; i < max; i++) {
+		if (array[i] == true) return false;
+	}
+	return true;
+}
+bool isOneOfThemTrue(bool*  array, int max)
+{
+	for (int i = 0; i < max; i++) {
+		if (array[i] == true) return true;
+	}
+	return false;
+}
+bool isOneOfThemFalse(bool*  array, int max)
+{
+	for (int i = 0; i < max; i++) {
+		if (array[i] == false) return true;
+	}
+	return false;
+}
+
+void setAll(bool*  array, int max, bool value)
+{
+	for (int i = 0; i < max; i++) {
+		 array[i] = value;
+	}
+}
+
+
+
 
 void CfireGuardGraphDlg::OnDataTimer()
 {
+	static bool hasTemperAlarm[MAX_CAMERA] = { false, false, false, false, false, false, false, false };
+	static bool hasVelociAlarm[MAX_CAMERA] = { false, false, false, false, false, false, false, false };
+
+	static bool hasTemperBgChanged[MAX_CAMERA] = { false, false, false, false, false, false, false, false };
+	static bool hasVelociBgChanged[MAX_CAMERA] = { false, false, false, false, false, false, false, false };
+
 	// The current time in millisecond resolution
 	SYSTEMTIME st;
 	GetLocalTime(&st);
@@ -734,6 +784,9 @@ void CfireGuardGraphDlg::OnDataTimer()
 		// In this demo, if the data arrays are full, the oldest 5% of data are discarded.
 		if (m_currentIndex >= sampleSize)
 		{
+			// 0 부터 시작해서, sampleSize 까지 하나씩 채우다가,  꽉 차면,
+			// 다시 처음부터 채우는 것이 아니고,  전체 값을 좌측으로 shift 하고, 제일 마지막 배열에 최신값을 넣는다.
+			// 따라서, 일정 시간이 지나면, m_currentIndex 는 항상 sampleSize -1 에 있게 된다.
 			//m_currentIndex = sampleSize * 95 / 100 - 1;
 
 			//for (int i = 0; i < m_currentIndex; ++i)
@@ -798,8 +851,9 @@ void CfireGuardGraphDlg::OnDataTimer()
 				// 면적이 지속적으로 양의 값을 기록한다면 온도가 지속적으로 상승하고 있다고 볼 수  있다.
 				double deviation = 0.0f;
 				m_rateSeries[j][m_currentIndex] = Formula(j, m_currentIndex, m_velociThreshold->m_frequency);
-				if (m_rateSeries[j][m_currentIndex] > 0)
-				{
+				
+				//if (m_rateSeries[j][m_currentIndex] > 0)
+				//{
 					//if (m_velociThreshold->m_deviation > 0.0f)
 					//{
 					//	deviation = deviation * (m_velociThreshold->m_deviation/100.0f);
@@ -808,7 +862,10 @@ void CfireGuardGraphDlg::OnDataTimer()
 
 					//if ((m_rateSeries[j][m_currentIndex - 1] + deviation) <= m_rateSeries[j][m_currentIndex])  // 이전값보다 크거나 같다.
 					//if (m_rateSeries[j][m_currentIndex - 1]  <= m_rateSeries[j][m_currentIndex])  // 이전값보다 크거나 같다.
-					if (m_rateSeries[j][m_currentIndex]  > 0 )  // 적분값이 0 보다 크면 상승중인 것이다.  값이 이전보다 줄어든 것은 다만, 상승률이 둔화된 것이다.
+				
+				
+				//if (m_rateSeries[j][m_currentIndex]  > 0 )  // 적분값이 0 보다 크면 상승중인 것이다.  값이 이전보다 줄어든 것은 다만, 상승률이 둔화된 것이다.
+				if (isIncrease(j, m_currentIndex, m_velociThreshold->m_frequency))
 					{
 						// 상승분은 시간 milli second 만큼으로 보는데, 현재는 Data 인터벌이 250 이므로 1/4 초가 하나의 돗수가 된다. 
 						m_countSeries[j][m_currentIndex] = m_countSeries[j][m_currentIndex - 1] + (DataInterval / 1000.0f);
@@ -817,20 +874,18 @@ void CfireGuardGraphDlg::OnDataTimer()
 					{
 						m_countSeries[j][m_currentIndex] = 0.0f;
 					}
-				}
-				else
-				{
-					m_countSeries[j][m_currentIndex] = 0.0f;
-				}
+				
+				
+				
+				//}
+				//else
+				//{
+				//	m_countSeries[j][m_currentIndex] = 0.0f;
+				//}
 				
 			}
 		}
 
-		bool hasTemperAlarm = false;
-		bool hasVelociAlarm = false;
-
-		static bool hasTemperBgChanged = false;
-		static bool hasVelociBgChanged= false;
 
 
 		if (!m_isStopAlarm)
@@ -844,9 +899,10 @@ void CfireGuardGraphDlg::OnDataTimer()
 				CString idStr;
 				idStr.Format("%d", j + 1);
 				double value = m_session->GetData(idStr, TEMPER_OVER);
-				hasTemperAlarm = this->m_temperThreshold->RunAlarmSound(value);
+				//TraceLog(("RunAlarmSound temper %f", value));
+				hasTemperAlarm[j] = this->m_temperThreshold->RunAlarmSound(value);
 				
-				if (hasTemperAlarm)
+				if (hasTemperAlarm[j])
 				{
 					//if (!m_temperThreshold->hasAleadyPlayed())
 					//{
@@ -855,12 +911,12 @@ void CfireGuardGraphDlg::OnDataTimer()
 					//	command.Format("POPUP/%d/0", j);
 					//	preSocketHandler::getInstance()->pushCommand("POPUP", j, 0); // popup 으로 화면을 띠울것을 요청한다.
 					//}
-					if (!hasTemperBgChanged)
+					if (!hasTemperBgChanged[j])
 					{
 						// Change Chart Color
 							CopyFileA(TEMPER_ALARM_BG, TEMPER_BG, FALSE);
 							TraceLog(("setBgImage to alarm"));
-							hasTemperBgChanged = true;
+							hasTemperBgChanged[j] = true;
 							preSocketHandler::getInstance()->pushCommand("POPUP", j, 1); // popup 으로 화면을 띠울것을 요청한다.
 							SendSMS(j + 1, TEMPER_OVER, value);
 					}
@@ -879,17 +935,18 @@ void CfireGuardGraphDlg::OnDataTimer()
 				}
 				//double rate = m_rateSeries[j][m_currentIndex];
 				double rate = m_countSeries[j][m_currentIndex];
-				hasVelociAlarm = this->m_velociThreshold->RunAlarmSound(rate);
+				//TraceLog(("RunAlarmSound velo %f", rate));
+				hasVelociAlarm[j] = this->m_velociThreshold->RunAlarmSound(rate);
 
-				if (hasVelociAlarm)
+				if (hasVelociAlarm[j])
 				{
 					//if (!m_velociThreshold->hasAleadyPlayed())
 					//{
 					//	SendSMS(j + 1, VELOCITY_OVER, rate);
 					//}
-					if (!hasVelociBgChanged) {
+					if (!hasVelociBgChanged[j]) {
 						CopyFileA(VELO_ALARM_BG, VELO_BG, FALSE);
-						hasVelociBgChanged = true;
+						hasVelociBgChanged[j] = true;
 						preSocketHandler::getInstance()->pushCommand("POPUP", j, 2); //  popup 으로 화면을 띠울것을 요청한다.
 						SendSMS(j + 1, VELOCITY_OVER, rate);
 					}
@@ -901,22 +958,26 @@ void CfireGuardGraphDlg::OnDataTimer()
 			}
 		}
 
-		if (!hasTemperAlarm)
+		if (isAllFalse(hasTemperAlarm, MAX_CAMERA))
 		{
-			this->OnBnClickedBtStop();
+			if (isAllFalse(hasVelociAlarm, MAX_CAMERA)) {  // 사운드 Stop 은 두가지 종류의 알람이 모두 없어져야만 한다.
+				this->OnBnClickedBtStop();
+			}
 			// Change Chart Color
-			if (hasTemperBgChanged) {
-				hasTemperBgChanged = false;
+			if (isOneOfThemTrue(hasTemperBgChanged, MAX_CAMERA)) {
+				setAll(hasTemperBgChanged, MAX_CAMERA, false);
 				CopyFileA(TEMPER_NORMAL_BG, TEMPER_BG, FALSE);
 				TraceLog(("setBgImage to normal"));
 			}
 		}
 
-		if (!hasVelociAlarm) 
+		if (isAllFalse(hasVelociAlarm, MAX_CAMERA))
 		{
-			this->OnBnClickedBtVelocStop();
-			if (hasVelociBgChanged) {
-				hasVelociBgChanged = false;
+			if (isAllFalse(hasTemperAlarm, MAX_CAMERA)) {  // 사운드 Stop 은 두가지 종류의 알람이 모두 없어져야만 한다.
+				this->OnBnClickedBtVelocStop();
+			}
+			if (isOneOfThemTrue(hasVelociBgChanged, MAX_CAMERA)) {
+				setAll(hasVelociBgChanged, MAX_CAMERA, false);
 				CopyFileA(VELO_NORMAL_BG, VELO_BG, FALSE);
 			}
 		}
@@ -1404,6 +1465,7 @@ void CfireGuardGraphDlg::OnBnClickedButtonMaxApply()
 
 void CfireGuardGraphDlg::OnBnClickedBtStop()
 {
+	//TraceLog(("OnBnClickedBtStop Sound"));
 	m_temperThreshold->OnStop();
 }
 void CfireGuardGraphDlg::OnBnClickedButtonVelocApply()
@@ -1461,9 +1523,19 @@ void CfireGuardGraphDlg::OnBnClickedButtonVelocApply()
 }
 void CfireGuardGraphDlg::OnBnClickedBtVelocStop()
 {
+	//TraceLog(("OnBnClickedBtVelocStop Sound"));
 	m_velociThreshold->OnStop();
 	//m_slopeThreshold->OnStop();
 	//m_checkSMS.SetCheck(true);
+}
+bool  CfireGuardGraphDlg::isIncrease(int cameraId, int currentIndex, int frequency)
+{
+	// 그냥,  앞의 숫자보다 크면 양의 값을 아니면 음의 값을 리턴한다.
+	
+	bool retval = (m_rateSeries[cameraId][currentIndex] - m_rateSeries[cameraId][currentIndex-1] > 0);
+	TraceLog(("2022: %d , rate[%d]=%0.2f, rate[%d]=%0.2f", (retval ? 1 : 0), currentIndex, m_rateSeries[cameraId][currentIndex], currentIndex - 1, m_rateSeries[cameraId][currentIndex - 1]));
+	return retval;
+
 }
 
 double  CfireGuardGraphDlg::Formula(int cameraId, int currentIndex, int frequency)
@@ -1481,12 +1553,16 @@ double  CfireGuardGraphDlg::Formula(int cameraId, int currentIndex, int frequenc
 	double sumY = 0.0f;
 	double count = 0.0f;
 	
+
 	for (int i = startIdx; i <= endIdx; i++)
 	{
+		double curVal = GetDataValue(cameraId, i);
+		
 		count += 1.0f;
-		sumY += GetDataValue(cameraId,i);
+		sumY += curVal;
 		sumX += m_timeStamps[i];    // timeStamp는  우상향하는 직선그래프이다.   
 	}
+	
 
 	// 표본 평균
 	double avgY = sumY / count;
@@ -1520,20 +1596,24 @@ double  CfireGuardGraphDlg::Formula(int cameraId, int currentIndex, int frequenc
 	{
 		isFirstTime = false;
 	}
-	if (!isFirstTime)  // 처음 frequency 개 값을 버린다.  currentIndex 값은 돌고 돌기 때문에, 반드시 이렇게 처리해야함.
+	if (!isFirstTime)  // 처음 frequency 개 값을 버린다.  currentIndex 값은 일정시간이 지나면 frequency 보다 항상 큰 값이다. ( m_currentIndex = sampleSize -1) 따라서 처음에 frequency 값만 버리게 된다.
 	{
 		m_slopeSeries[cameraId][currentIndex] = slope;
 	}
 
 	//TraceLog(("startIdx=%d,endIdx=%d", startIdx, endIdx));
 	
+	 // 2022.08.198 . 그냥 이전값과의 차를 리턴하는 것으로...
 	// slope 값을 모두 더한다.
-	double retval = 0.0f;
-	for (int i = startIdx; i <= endIdx; i++)
-	{
-		retval += m_slopeSeries[cameraId][i];
-	}
-	return retval;
+	//double retval = 0.0f;
+	//for (int i = startIdx; i <= endIdx; i++)
+	//{
+	//	retval += m_slopeSeries[cameraId][i];
+	//}
+	//return retval;
+	 
+	// 그냥 표본평균을 리턴한다.
+	return avgY;  
 }
 
 void CfireGuardGraphDlg::OnBnClickedCheckAlarm()
@@ -1565,6 +1645,8 @@ void CfireGuardGraphDlg::OnBnClickedCheckTrend()
 	{
 		m_isStopTrend = true;
 		//m_temperThreshold->OnStop();
+		TraceLog(("OnBnClickedCheckTrend Sound"));
+
 		m_velociThreshold->OnStop();
 		//m_slopeThreshold->OnStop();
 	}
@@ -1647,14 +1729,17 @@ int CfireGuardGraphDlg::SendSMS(int cameraId, int type, float threshold)
 		CString contents;
 		if (type == VELOCITY_OVER)
 		{
-			contents.Format("Camera %d : A sharp rise in temperature was found.(%.1f)", cameraId, threshold);
+			contents.Format("경보 : Camera %d에서 온도가 지속적으로 상승하는 중입니다. 확인을 바랍니다.(%.1f)", cameraId, threshold);
 		}
 		else
 		{
-			contents.Format("Camera %d : Over temperature has occurred.(%.1f)", cameraId, threshold);
+			contents.Format("경보 : Camera %d에서 높은 온도가 감지되었습니다.  확인을 바랍니다.(%.1f)", cameraId, threshold);
 		}
 
-		count += int(SendNaverSMS(m_smsURL, "FIRE WARNING", contents, "", m_sendData[i].tel));
+		CString path = UBC_CONFIG_PATH;
+		path += "sms";
+
+		count += int(SendNaverSMS(m_smsURL, "FIRE WARNING", contents, path, m_sendData[i].tel));
 	}
 	TraceLog(("%dth SMS sent", count));
 	return count;
@@ -1667,7 +1752,8 @@ bool CfireGuardGraphDlg::SendNaverSMS(const char* serviceUrl,
 	dataJson.Format("{\r\n\t\"title\":\"%s\",\r\n\t\"content\":\"%s\",\r\n\t\"phone\":\"%s\"\r\n}",
 		title, content, phoneNo);
 
-	CString utf8Str = UTF8ToANSIString(dataJson).c_str();
+	//CString utf8Str = UTF8ToANSIString(dataJson).c_str();
+	CString utf8Str = ANSIToUTF8String(dataJson).c_str();
 
 	CString jsonFile;
 	jsonFile.Format("%s.json", imgUrl);
@@ -1686,18 +1772,18 @@ bool CfireGuardGraphDlg::SendNaverSMS(const char* serviceUrl,
 	params += " --form \"dataJson=@";
 	params += jsonFile;
 	params += "\"";
-	if (imgUrl && strlen(imgUrl) > 0)
+	/*if (imgUrl && strlen(imgUrl) > 0)
 	{
 		params += " --form \"imgUrl=@";
 		params += imgUrl;
 		params += "\"";
-	}
+	}*/
 	TraceLog(("skpark face curl %s", params));
 
 	CString strRetData = RunCLI("C:\\Windows\\System32\\", "curl.exe", params);
 	TraceLog(("_SendNaverSMS:%s", strRetData));
 
-	::DeleteFile(jsonFile);
+	//::DeleteFile(jsonFile);
 
 	if (strRetData.Find("true") >= 0)
 	{

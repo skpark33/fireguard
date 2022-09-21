@@ -47,6 +47,11 @@ char* UTF8ToAnsi(const char *szUTF8String);
 std::string UTF8ToANSIString(const char *pUtf8String);
 std::string UTF8ToANSIString(std::string strRetData);
 
+char* AnsiToUTF8(const char *szAnsiString);
+std::string ANSIToUTF8String(const char *pUtf8String);
+std::string ANSIToUTF8String(std::string strRetData);
+
+
 #define UBCBRW_INI				_T("UBCBrowser.ini")
 #define UBC_CONFIG_PATH			_T("C:\\SQISoft\\UTV1.0\\execute\\data\\")
 #define UBC_EXECUTE_PATH			_T("C:\\SQISoft\\UTV1.0\\execute\\")

@@ -72,13 +72,16 @@ void preSocketHandler::pushCommand(const char* command, int cameraId, int alarmT
 	//_commandList.push_back(response);
 
 
-	HWND brwHwnd = getWHandle("FireGuardCamera.exe");
+	HWND brwHwnd = getWHandle("GuardianCenter.exe");
 
 	if (!brwHwnd) {
-		TraceLog(("skpark process not found(%s)", "UTV_brwClient2.exe"));
-		return ;
-	}
-	
+		brwHwnd = getWHandle("FireGuardCamera.exe");
+		if (!brwHwnd) {
+			TraceLog(("skpark process not found(%s)", "FireGuardCamera.exe"));
+			return;
+		}
+	} 
+
 	COPYDATASTRUCT cds;
 	cds.dwData = (ULONG_PTR)WM_TEMPERATURE_ALARM;
 	cds.cbData = strlen(response);

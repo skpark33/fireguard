@@ -201,6 +201,7 @@ public:
 		return (retval == _NO_VALUE_ || retval == Chart::NoValue ? 0.0f : retval);
 	}
 	double  Formula(int cameraId, int currentIndex, int frequency);
+	bool  isIncrease(int cameraId, int currentIndex, int frequency);
 
 	CButton m_checkStopAlarm;
 	CButton m_checkStopTrend;

@@ -159,6 +159,9 @@
     <ClCompile Include="skpark\NetworkAdapter.cpp">
       <Filter>skpark</Filter>
     </ClCompile>
+    <ClCompile Include="ThermalDetailDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioPlayer.h">
@@ -319,6 +322,9 @@
     </ClInclude>
     <ClInclude Include="skpark\NetworkAdapter.h">
       <Filter>skpark</Filter>
+    </ClInclude>
+    <ClInclude Include="ThermalDetailDlg.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

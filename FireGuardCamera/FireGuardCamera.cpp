@@ -68,8 +68,17 @@ BOOL CFireGuardCameraApp::InitInstance()
 		m_allCamera[i] = NULL;
 	}
 
+	bool hikvision = false;
+	if (__argc > 1) {
+		CString arg = __argv[1];
+		if (arg == "+hikvision") {
+			hikvision = true;
+		}
+	}
+	
 
-	CFireGuardCameraDlg dlg;
+
+	CFireGuardCameraDlg dlg(hikvision);
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 	if (nResponse == IDOK)

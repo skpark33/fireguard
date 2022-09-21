@@ -287,6 +287,7 @@
     <ClCompile Include="FireGuardCameraDlg.cpp" />
     <ClCompile Include="ThermalCorrectionInfoDlg.cpp" />
     <ClCompile Include="ThermalCtrlInfoDlg.cpp" />
+    <ClCompile Include="ThermalDetailDlg.cpp" />
     <ClCompile Include="ThermalRegionInfoDlg.cpp" />
     <ClCompile Include="ThermalSpotInfoDlg.cpp" />
     <ClCompile Include="ThermalTempInfoDlg.cpp" />
@@ -342,6 +343,7 @@
     <ClInclude Include="FireGuardCamera.h" />
     <ClInclude Include="ThermalCorrectionInfoDlg.h" />
     <ClInclude Include="ThermalCtrlInfoDlg.h" />
+    <ClInclude Include="ThermalDetailDlg.h" />
     <ClInclude Include="ThermalRegionInfoDlg.h" />
     <ClInclude Include="ThermalSpotInfoDlg.h" />
     <ClInclude Include="ThermalTempInfoDlg.h" />
