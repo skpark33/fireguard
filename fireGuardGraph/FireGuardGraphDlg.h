@@ -221,7 +221,60 @@ public:
 	void LoadSendData();
 	CString m_smsURL;
 	int SendSMS(int cameraId, int type, float threshold);
-	bool SendNaverSMS(const char* serviceUrl, const char* title, const char* content, const char* imgUrl, const char* phoneNo);
+	bool SendNaverSMS(const char* serviceUrl, const char* title, const char* content, const char* imgUrl, const char* phoneNo, int carmeraId);
+
+	class SMSLog {
+	public:
+		SMSLog()
+		{
+			_lastSendTime = 0;
+			_sendCount = 0;
+			_cameraId = -1;
+		}
+		SMSLog(CString phoneNo, int cameraId)
+		{
+			_phoneNo = phoneNo;
+			_cameraId = cameraId;
+			_lastSendTime = time(NULL);
+			_sendCount = 1;
+		}
+		CString key()
+		{
+			_buf.Format("%s%d", _phoneNo, _cameraId);
+			return _buf;
+		}
+		void add() {
+			_lastSendTime = time(NULL);
+			_sendCount++;
+		}
+		bool isOver()
+		{
+			// 마지막으로 발송한지 5분이 지나지 않았는데, count 가 이미 3번이면 over 라서, 보내지 않는다.
+			time_t now = time(NULL);
+			if (now - _lastSendTime < 5 * 60 && _sendCount >= 3) {
+				return true;
+			}
+			return false;
+		}
+		bool isOld()
+		{
+			// 마지막으로 발송한지 한시간이 지났다면 old 한 것이다.
+			time_t now = time(NULL);
+			if (now - _lastSendTime >  60*60) {
+				return true;
+			}
+			return false;
+		}
+
+		int			_cameraId;
+		CString  _phoneNo;
+		time_t		_lastSendTime;
+		int			_sendCount;
+		CString _buf;
+	};
+	typedef std::map<CString, SMSLog*>  SMSLOGMAP;
+	SMSLOGMAP  _smsLogMap;
+
 
 	afx_msg void OnBnClickedCheckSendMsg();
 

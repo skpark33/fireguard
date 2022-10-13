@@ -1739,15 +1739,44 @@ int CfireGuardGraphDlg::SendSMS(int cameraId, int type, float threshold)
 		CString path = UBC_CONFIG_PATH;
 		path += "sms";
 
-		count += int(SendNaverSMS(m_smsURL, "FIRE WARNING", contents, path, m_sendData[i].tel));
+		count += int(SendNaverSMS(m_smsURL, "FIRE WARNING", contents, path, m_sendData[i].tel, cameraId));
 	}
 	TraceLog(("%dth SMS sent", count));
 	return count;
 }
 
 bool CfireGuardGraphDlg::SendNaverSMS(const char* serviceUrl, 
-	const char* title, const char* content, const char* imgUrl, const char* phoneNo)
+	const char* title, const char* content, const char* imgUrl, const char* phoneNo, int cameraId)
 {
+	// delete old 
+	for (SMSLOGMAP::iterator jtr = _smsLogMap.begin(); jtr != _smsLogMap.end();) {
+		SMSLog* alog = jtr->second;
+		if (alog->isOld()) {
+			delete alog;
+			_smsLogMap.erase(jtr++);
+		}
+		else{
+			++jtr;
+		}
+	}
+
+	SMSLog* alog = new SMSLog(phoneNo, cameraId);
+	CString key = alog->key();
+	SMSLOGMAP::iterator itr = _smsLogMap.find(key);
+	if (itr == _smsLogMap.end()) {
+		_smsLogMap[key] = alog;
+	}
+	else {
+		delete alog;
+		alog = 0;
+		alog = itr->second;
+		if (alog->isOver()) {
+			return false;
+		}
+		alog->add();
+	}
+
+
 	CString dataJson = "";
 	dataJson.Format("{\r\n\t\"title\":\"%s\",\r\n\t\"content\":\"%s\",\r\n\t\"phone\":\"%s\"\r\n}",
 		title, content, phoneNo);
