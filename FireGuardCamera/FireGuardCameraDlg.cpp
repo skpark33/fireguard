@@ -1750,7 +1750,8 @@ void CFireGuardCameraDlg::OnBnClickedButtonStreaming()
 
 
 	CString title; 
-	title.Format("카메라 %s", rtspurl[m_selected]);  //skpark
+	//title.Format("카메라 %s", rtspurl[m_selected]);  //skpark
+	title.Format("카메라 [%d]", m_selected);  //skpark
 
 	TraceLog(("skpark : title %s", title));
 
@@ -2216,17 +2217,17 @@ void CFireGuardCameraDlg::ShowScreen(int cameraId, int alarmType)
 	
 	CString title;
 	if (alarmType == 0) {
-		title.Format("카메라 %s", rtspurl);  //skpark
+		title.Format("카메라 [%d]", cameraId);  //skpark
 	}
 	else if (alarmType == 1) {
 		CTime now = CTime::GetCurrentTime();
-		title.Format("카메라 %s 온도 이상 알람 발생 :  %04d/%02d/%02d %02d:%02d:%02d",
-			rtspurl,now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond());  //skpark
+		title.Format("카메라 [%d] 온도 이상 알람 발생 :  %04d/%02d/%02d %02d:%02d:%02d",
+			cameraId, now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond());  //skpark
 	}
 	else  if (alarmType == 2) {
 		CTime now = CTime::GetCurrentTime();
-		title.Format("카메라 %s 온도 상승 추세 발생 :  %04d/%02d/%02d %02d:%02d:%02d",
-			rtspurl, now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond());  //skpark
+		title.Format("카메라 [%d] 온도 상승 추세 발생 :  %04d/%02d/%02d %02d:%02d:%02d",
+			cameraId, now.GetYear(), now.GetMonth(), now.GetDay(), now.GetHour(), now.GetMinute(), now.GetSecond());  //skpark
 	}
 
 	TraceLog(("show4 skpark : title %s", title));

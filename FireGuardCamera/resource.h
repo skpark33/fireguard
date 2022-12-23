@@ -166,7 +166,6 @@
 #define IDC_BUTTON_DEL_CAMERA           1038
 #define IDC_BUTTON_READ                 1039
 #define IDC_COMBO_RECORD_TYPE           1039
-#define IDC_BUTTON_DEL_CAMERA2          1039
 #define IDC_BUTTON_CHANGE_IP            1039
 #define IDC_SLIDER_GAMMA                1040
 #define IDC_EDIT_READ                   1040
