@@ -282,8 +282,10 @@ void CStreamingDlg::OnDestroy()
 
 void CStreamingDlg::OnClose()
 {
-	CWnd* pwndParent = GetParent();
-	if (pwndParent) {
-		pwndParent->SendMessage(WM_COMMAND, MAKEWPARAM(IDC_BUTTON_STREAMING, BN_CLICKED), (LPARAM)GetSafeHwnd());
-	}
+	//CWnd* pwndParent = GetParent();
+	//if (pwndParent) {
+	//	pwndParent->SendMessage(WM_COMMAND, MAKEWPARAM(IDC_BUTTON_STREAMING, BN_CLICKED), (LPARAM)GetSafeHwnd());
+	//}
+	StopStreaming();
+	CDialog::OnClose();
 }

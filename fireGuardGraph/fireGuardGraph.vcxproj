@@ -273,6 +273,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="LogManager.cpp" />
+    <ClCompile Include="MultiThresholdHandler.cpp" />
     <ClCompile Include="preSocketSession.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -289,6 +290,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ThresholdHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\skpark\TraceLog.h" />
@@ -315,6 +317,7 @@
     <ClInclude Include="FireGuardGraph.h" />
     <ClInclude Include="FireGuardGraphDlg.h" />
     <ClInclude Include="LogManager.h" />
+    <ClInclude Include="MultiThresholdHandler.h" />
     <ClInclude Include="preSocketSession.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SelectCameraDlg.h" />
@@ -323,6 +326,7 @@
     <ClInclude Include="SMSManagerDlg.h" />
     <ClInclude Include="sockUtil.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ThresholdHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\FireGuardGraph.ico" />

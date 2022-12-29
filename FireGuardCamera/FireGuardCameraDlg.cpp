@@ -1725,7 +1725,7 @@ void CFireGuardCameraDlg::OnBnClickedButtonStreaming()
 			m_StreamingDlg[m_selected].EndDialog(IDOK);
 		}
 
-		GetDlgItem(IDC_BUTTON_STREAMING)->SetWindowText(("화면 시작"));
+		GetDlgItem(IDC_BUTTON_STREAMING)->SetWindowText(("화면 시작/종료"));
 		return;
 	}
 
@@ -1770,7 +1770,7 @@ void CFireGuardCameraDlg::OnBnClickedButtonStreaming()
 	}
 	else
 	{
-		GetDlgItem(IDC_BUTTON_STREAMING)->SetWindowText(("화면 종료"));
+		GetDlgItem(IDC_BUTTON_STREAMING)->SetWindowText(("화면 시작/종료"));
 	}
 }
 

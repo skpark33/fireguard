@@ -65,6 +65,7 @@
 #define IDC_CHECK_8                     1034
 #define IDC_BUTTON_MAX_APPLY            1035
 #define IDC_EDIT_THRESHOLD_MIN          1036
+#define IDC_CHECK_TH_1                  1036
 #define IDC_CHECK_ALL1                  1037
 #define IDC_DATETIMEPICKER1             1037
 #define IDC_ANIMATE1                    1038
@@ -100,13 +101,35 @@
 #define IDC_STATIC_VELO_SEC             1049
 #define IDC_BUTTON1                     1050
 #define IDC_BT_SHOW_1                   1050
-#define IDC_BT_SHOW_2                  1051
+#define IDC_BT_SHOW_2                   1051
 #define IDC_BT_SHOW_3                   1052
 #define IDC_BT_SHOW_4                   1053
 #define IDC_BT_SHOW_5                   1054
 #define IDC_BT_SHOW_6                   1055
 #define IDC_BT_SHOW_7                   1056
 #define IDC_BT_SHOW_8                   1057
+#define IDC_CHECK_TH_2                  1058
+#define IDC_CHECK_TH_3                  1059
+#define IDC_CHECK_TH_4                  1060
+#define IDC_CHECK_TH_5                  1061
+#define IDC_CHECK_TH_6                  1062
+#define IDC_CHECK_TH_7                  1063
+#define IDC_CHECK_TH_8                  1064
+#define IDC_STATIC_NAME9                1065
+#define IDC_STATIC_NAME10               1066
+#define IDC_STATIC_NAME11               1067
+#define IDC_STATIC_NAME12               1068
+#define IDC_STATIC_NAME13               1069
+#define IDC_STATIC_NAME14               1070
+#define IDC_STATIC_NAME15               1071
+#define IDC_STATIC_NAME16               1072
+#define IDC_EDIT_THRESHOLD_MAX2         1073
+#define IDC_EDIT_THRESHOLD_MAX3         1074
+#define IDC_EDIT_THRESHOLD_MAX4         1075
+#define IDC_EDIT_THRESHOLD_MAX5         1076
+#define IDC_EDIT_THRESHOLD_MAX6         1077
+#define IDC_EDIT_THRESHOLD_MAX7         1078
+#define IDC_EDIT_THRESHOLD_MAX8         1079
 
 // Next default values for new objects
 // 

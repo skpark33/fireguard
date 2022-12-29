@@ -21,7 +21,6 @@ using namespace std;
 #define new DEBUG_NEW
 #endif
 
-
 #define		TEMPER_BG		"t_bg.png"
 #define		VELO_BG		"v_bg.png"
 #define		SLOPE_BG		"s_bg.png"
@@ -33,206 +32,6 @@ using namespace std;
 #define		VELO_ALARM_BG		"v_alarm.png"
 #define		SLOPE_NORMAL_BG		"s_normal.png"
 
-
-/////////////////////////////////////////////////////////////////////////////
-// CThresholdHandler class
-
-CThresholdHandler::CThresholdHandler(int type, CChartViewer* viewer, CEdit* maxE, 
-	CAnimateCtrl* aniCtrl, CEdit*  frequency/*,CEdit* deviation*/)
-{
-	
-	m_type = type;
-	m_maxName = "MAX_THRESHOLD";
-	m_minName = "MIN_THRESHOLD";
-	if (m_type == VELOCITY_OVER)
-	{
-		m_maxName = "MAX_VELOC_THRESHOLD";
-		m_minName = "MIN_VELOC_THRESHOLD";
-	}
-	m_ChartViewer = viewer;
-	m_maxEditor = maxE;
-	m_editFrequency = frequency;
-	//m_editDeviation = deviation;
-	m_aniCtrl = aniCtrl;
-	m_isAniOpen = false;
-	m_isAniPlay = false;
-
-	m_thresholdMax = -1.0f;
-	m_frequency = 0;;
-	//m_deviation = 0;
-}
-CThresholdHandler::~CThresholdHandler()
-{
-	if (m_aniCtrl && m_isAniOpen)
-	{
-		m_aniCtrl->Stop();
-		m_aniCtrl->Close();
-	}
-}
-
-void CThresholdHandler::ReadConfig(LPCTSTR maxDefault,  LPCTSTR minDefault)
-{
-	CString iniPath = UBC_CONFIG_PATH;
-	iniPath += UBCBRW_INI;
-	char buf[512];
-	memset(buf, 0x00, 512);
-	GetPrivateProfileString("FIRE_WATCH", m_maxName, maxDefault, buf, 512, iniPath);
-	m_thresholdMax = atoi(buf);
-	if (m_maxEditor)
-	{
-		m_maxEditor->SetWindowTextA(buf);
-	}
-	if (m_editFrequency)
-	{
-		memset(buf, 0x00, 512);
-		GetPrivateProfileString("FIRE_WATCH", "FREQUENCY", "100", buf, 512, iniPath);
-		m_frequency = atoi(buf);
-		m_editFrequency->SetWindowTextA(buf);
-	}
-	//if (m_editDeviation)
-	//{
-	//	memset(buf, 0x00, 512);
-	//	GetPrivateProfileString("FIRE_WATCH", "DEVIATION", "1", buf, 512, iniPath);
-	//	m_deviation = atof(buf);
-	//	m_editDeviation->SetWindowTextA(buf);
-	//}
-
-
-	if (m_maxEditor)
-	{
-		m_ChartViewer->SetThreshold(m_thresholdMax, m_type);
-	}
-}
-void CThresholdHandler::WriteConfig()
-{
-	CString iniPath = UBC_CONFIG_PATH;
-	iniPath += UBCBRW_INI;
-
-	CString buf;
-	buf.Format("%d", int(m_thresholdMax));
-	WritePrivateProfileStringA("FIRE_WATCH", m_maxName, buf, iniPath);
-
-	if (m_editFrequency)
-	{
-		buf.Format("%d", m_frequency);
-		WritePrivateProfileStringA("FIRE_WATCH", "FREQUENCY", buf, iniPath);
-	}
-	//if (m_editDeviation)
-	//{
-	//	buf.Format("%.0f", m_deviation);
-	//	WritePrivateProfileStringA("FIRE_WATCH", "DEVIATION", buf, iniPath);
-	//}
-
-}
-
-void CThresholdHandler::OnApply()
-{
-	CString thresholdStr;
-	if (m_maxEditor)
-	{
-		m_maxEditor->GetWindowTextA(thresholdStr);
-		m_thresholdMax = atof(thresholdStr);
-	}
-	if (m_editFrequency)
-	{
-		m_editFrequency->GetWindowTextA(thresholdStr);
-		m_frequency = atoi(thresholdStr);
-	}
-	//if (m_editDeviation)
-	//{
-	//	m_editDeviation->GetWindowTextA(thresholdStr);
-	//	m_deviation = atof(thresholdStr);
-	//}
-	WriteConfig();
-
-	m_ChartViewer->SetThreshold(m_thresholdMax, m_type);
-	m_ChartViewer->Invalidate();
-}
-
-void CThresholdHandler::OnStop()
-{
-	if (m_aniCtrl)
-	{
-		if (m_isAniPlay)
-		{
-			m_aniCtrl->Stop();
-
-			TraceLog(("Sound Stop..."));
-			PlaySound(NULL, 0, 0);
-			m_isAniPlay = false;
-			m_aniCtrl->ShowWindow(SW_HIDE);
-		}
-	}
-}
-
-bool  CThresholdHandler::InitAnimation()
-{
-	if (m_aniCtrl)
-	{
-		CString szSoundPath;
-		szSoundPath.Format("%swarning%d.avi", UBC_EXECUTE_PATH, m_type);
-
-		m_isAniOpen = this->m_aniCtrl->Open(szSoundPath);
-
-		m_aniCtrl->ShowWindow(SW_HIDE);
-
-		return m_isAniOpen;
-	}
-	return false;
-}
-
-bool  CThresholdHandler::RunAlarmSound(double value)
-{
-	//TraceLog(("RunAlarmSound1, m_thresholdMax = %f", m_thresholdMax));
-	if ( m_aniCtrl && value > m_thresholdMax && value != _NO_VALUE_)
-	{
-		TraceLog(("RunAlarmSound2, m_thresholdMax = %f ,%f", value, m_thresholdMax));
-		if (!m_isAniPlay)
-		{
-			TraceLog(("RunAlarmSound3, m_thresholdMax = %f ,%f", value, m_thresholdMax));
-			this->_RunAlarmSound();
-		}
-		return true;
-	}
-	return false;
-}
-
-
-UINT  CThresholdHandler::_RunAlarmSound()
-{
-	CString szSoundPath;
-
-	szSoundPath.Format("%salarmSound%d.wav", UBC_EXECUTE_PATH, m_type);
-
-	if (IsLocalExist(szSoundPath))
-	{
-		//m_isAniOpen = m_aniCtrl.Open(szSoundPath);
-		TraceLog(("RunAlarmSound(%s)", szSoundPath));
-		//PlaySound(szSoundPath, AfxGetInstanceHandle(),  SND_ASYNC | SND_LOOP); // 무한
-		//if(PlaySound(szSoundPath, AfxGetInstanceHandle(),  SND_ASYNC| 
-		if (PlaySound(szSoundPath, AfxGetInstanceHandle(), SND_FILENAME | SND_ASYNC | SND_LOOP))
-		{// 1회 재생
-			TraceLog(("PlaySound(%s)", szSoundPath));
-			//PlaySound(NULL, AfxGetInstanceHandle(),  NULL); // 정지
-			m_isAniPlay = true;
-		}
-	}
-	else
-	{
-		TraceLog(("RunAlarmSound(%s) file not exist", szSoundPath));
-	}
-
-	if (m_aniCtrl)
-	{
-		m_aniCtrl->ShowWindow(SW_SHOW);
-
-		if (m_isAniOpen)
-		{
-			m_isAniPlay = m_aniCtrl->Play(0, -1, -1);
-		}
-	}
-	return 0;
-}
 
 /////////////////////////////////////////////////////////////////////////////
 // CfireGuardGraphDlg dialog
@@ -316,7 +115,14 @@ void CfireGuardGraphDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK_7, m_checkCamera[6]);
 	DDX_Control(pDX, IDC_CHECK_8, m_checkCamera[7]);
 	DDX_Control(pDX, IDC_CHECK_ALL1, m_checkCameraAll);
-	DDX_Control(pDX, IDC_EDIT_THRESHOLD_MAX, m_editThresholdMax);
+	DDX_Control(pDX, IDC_EDIT_THRESHOLD_MAX, m_editThresholdMax[0]);
+	DDX_Control(pDX, IDC_EDIT_THRESHOLD_MAX2, m_editThresholdMax[1]);
+	DDX_Control(pDX, IDC_EDIT_THRESHOLD_MAX3, m_editThresholdMax[2]);
+	DDX_Control(pDX, IDC_EDIT_THRESHOLD_MAX4, m_editThresholdMax[3]);
+	DDX_Control(pDX, IDC_EDIT_THRESHOLD_MAX5, m_editThresholdMax[4]);
+	DDX_Control(pDX, IDC_EDIT_THRESHOLD_MAX6, m_editThresholdMax[5]);
+	DDX_Control(pDX, IDC_EDIT_THRESHOLD_MAX7, m_editThresholdMax[6]);
+	DDX_Control(pDX, IDC_EDIT_THRESHOLD_MAX8, m_editThresholdMax[7]);
 	DDX_Control(pDX, IDC_EDIT_VELOC_MAX, m_editVelocMax);
 	DDX_Control(pDX, IDC_ANIMATE1, m_aniCtrl);
 	DDX_Control(pDX, IDC_VELOC_ANIMATE, m_aniVelocCtrl);
@@ -338,6 +144,14 @@ void CfireGuardGraphDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_BT_SHOW_6, m_btShow[5]);
 	DDX_Control(pDX, IDC_BT_SHOW_7, m_btShow[6]);
 	DDX_Control(pDX, IDC_BT_SHOW_8, m_btShow[7]);
+	DDX_Control(pDX, IDC_CHECK_TH_1, m_checkTH[0]);
+	DDX_Control(pDX, IDC_CHECK_TH_2, m_checkTH[1]);
+	DDX_Control(pDX, IDC_CHECK_TH_3, m_checkTH[2]);
+	DDX_Control(pDX, IDC_CHECK_TH_4, m_checkTH[3]);
+	DDX_Control(pDX, IDC_CHECK_TH_5, m_checkTH[4]);
+	DDX_Control(pDX, IDC_CHECK_TH_6, m_checkTH[5]);
+	DDX_Control(pDX, IDC_CHECK_TH_7, m_checkTH[6]);
+	DDX_Control(pDX, IDC_CHECK_TH_8, m_checkTH[7]);
 }
 
 BEGIN_MESSAGE_MAP(CfireGuardGraphDlg, CDialog)
@@ -431,6 +245,7 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
 	for (int j = 0; j < MAX_CAMERA; j++)
 	{
 		m_checkCamera[j].SetCheck(true);
+		m_checkTH[j].SetCheck(false);
 		m_btShow[j].EnableWindow(false);
 
 	}
@@ -496,10 +311,9 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
     loadButtonIcon(IDC_RunPB, IDI_RunPB, 100, 20);
     loadButtonIcon(IDC_FreezePB, IDI_FreezePB, 100, 20);
 
-	
-	m_temperThreshold = new CThresholdHandler(
+	m_temperThreshold = new CMultiThresholdHandler(
 		TEMPER_OVER,
-		&m_ChartViewer, &m_editThresholdMax,
+		&m_ChartViewer, m_editThresholdMax, m_checkTH,
 		&m_aniCtrl);
 
 	m_temperThreshold->ReadConfig("500.0", "-20.0");
@@ -637,17 +451,24 @@ void CfireGuardGraphDlg::OnTimer(UINT_PTR nIDEvent)
 	case DataRateTimer:
 		// Is data acquisition timer - get a new data sample
 		//getData();
+		//TraceLog(("OnTimer 1()"));
 		OnDataTimer();
+		//TraceLog(("OnTimer 1()"));
+
 		break;
 	case ChartUpdateTimer:
 		// Is chart update timer - request chart update
+		//TraceLog(("OnTimer 2()"));
 		m_ChartViewer.updateViewPort(true, false);
 		m_VelocViewer.updateViewPort(true, false);
 		m_SlopeViewer.updateViewPort(true, false);
+		//TraceLog(("OnTimer 2()"));
 		break;
 	
 	case FrequencyTimer:
+		//TraceLog(("OnTimer 3()"));
 		OnFrequencyTimer();
+		//TraceLog(("OnTimer 3()"));
 		break;
 	}
     CDialog::OnTimer(nIDEvent);
@@ -900,7 +721,7 @@ void CfireGuardGraphDlg::OnDataTimer()
 				idStr.Format("%d", j + 1);
 				double value = m_session->GetData(idStr, TEMPER_OVER);
 				//TraceLog(("RunAlarmSound temper %f", value));
-				hasTemperAlarm[j] = this->m_temperThreshold->RunAlarmSound(value);
+				hasTemperAlarm[j] = this->m_temperThreshold->RunAlarmSound(j, value);
 				
 				if (hasTemperAlarm[j])
 				{
@@ -1002,6 +823,8 @@ void CfireGuardGraphDlg::OnDataTimer()
 			if (!userCheck[i])
 			{
 				m_checkCamera[i].SetCheck(true);
+				m_checkTH[i].SetCheck(true);
+				m_editThresholdMax[i].EnableWindow(TRUE);
 				m_btShow[i].EnableWindow(true);
 			}
 		}
@@ -1011,8 +834,9 @@ void CfireGuardGraphDlg::OnDataTimer()
 			{
 				m_checkCamera[i].SetCheck(false);
 				m_btShow[i].EnableWindow(false);
-
 			}
+			m_checkTH[i].SetCheck(false);
+			m_editThresholdMax[i].EnableWindow(FALSE);
 		}
 	}
 }
@@ -1446,20 +1270,25 @@ void CfireGuardGraphDlg::OnBnClickedOpenFolder()
 }
 void CfireGuardGraphDlg::OnBnClickedButtonMaxApply()
 {
-	CString maxStr;
-	m_editThresholdMax.GetWindowTextA(maxStr);
+	for (int i = 0; i < MAX_CAMERA; i++) {
+		if (m_checkTH[i].GetCheck() == FALSE) {
+			m_editThresholdMax[i].SetWindowTextA("-1");
+			continue;
+		}
+		CString maxStr;
+		m_editThresholdMax[i].GetWindowTextA(maxStr);
 
-	int max = atoi(maxStr);
+		int max = atoi(maxStr);
 
-	if (max < MIN_THRESHOLD)
-	{
-		m_editThresholdMax.SetWindowTextA("0");
+		if (max < MIN_THRESHOLD)
+		{
+			m_editThresholdMax[i].SetWindowTextA("0");
+		}
+		if (max > MAX_THRESHOLD)
+		{
+			m_editThresholdMax[i].SetWindowTextA("499");
+		}
 	}
-	if (max > MAX_THRESHOLD)
-	{
-		m_editThresholdMax.SetWindowTextA("499");
-	}
-
 	m_temperThreshold->OnApply();
 }
 
@@ -1533,7 +1362,7 @@ bool  CfireGuardGraphDlg::isIncrease(int cameraId, int currentIndex, int frequen
 	// 그냥,  앞의 숫자보다 크면 양의 값을 아니면 음의 값을 리턴한다.
 	
 	bool retval = (m_rateSeries[cameraId][currentIndex] - m_rateSeries[cameraId][currentIndex-1] > 0);
-	TraceLog(("2022: %d , rate[%d]=%0.2f, rate[%d]=%0.2f", (retval ? 1 : 0), currentIndex, m_rateSeries[cameraId][currentIndex], currentIndex - 1, m_rateSeries[cameraId][currentIndex - 1]));
+	//TraceLog(("2022: %d , rate[%d]=%0.2f, rate[%d]=%0.2f", (retval ? 1 : 0), currentIndex, m_rateSeries[cameraId][currentIndex], currentIndex - 1, m_rateSeries[cameraId][currentIndex - 1]));
 	return retval;
 
 }

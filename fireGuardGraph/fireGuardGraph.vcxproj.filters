@@ -96,6 +96,12 @@
     <ClCompile Include="skpark\util.cpp">
       <Filter>skpark</Filter>
     </ClCompile>
+    <ClCompile Include="ThresholdHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiThresholdHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChartViewer.h">
@@ -193,6 +199,12 @@
     </ClInclude>
     <ClInclude Include="skpark\util.h">
       <Filter>skpark</Filter>
+    </ClInclude>
+    <ClInclude Include="ThresholdHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiThresholdHandler.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

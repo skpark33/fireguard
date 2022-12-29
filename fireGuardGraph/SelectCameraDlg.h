@@ -2,6 +2,9 @@
 #include "resource.h"
 #include "afxdtctl.h"
 
+#ifndef  MAX_CAMERA
+#define MAX_CAMERA 8
+#endif
 
 // CSelectCameraDlg 대화 상자입니다.
 
@@ -13,7 +16,6 @@ public:
 	CSelectCameraDlg(CWnd* pParent = NULL);   // 표준 생성자입니다.
 	virtual ~CSelectCameraDlg();
 
-	static const int MAX_CAMERA = 8;
 
 // 대화 상자 데이터입니다.
 	enum { IDD = IDD_DLG_SELECT_CAMERA };

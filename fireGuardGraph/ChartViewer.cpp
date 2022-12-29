@@ -1739,6 +1739,7 @@ static HCURSOR getNoMoveVertCursor()
 //skpark
 void CStaticHelper::DrawThreshold(HDC hdc, CStatic *self)
 {
+	//TraceLog(("DrawThreshold start"));
 	//CPaintDC dc(this); // device context for painting
 	Gdiplus::Graphics gdi(hdc);
 	
@@ -1759,29 +1760,35 @@ void CStaticHelper::DrawThreshold(HDC hdc, CStatic *self)
 	linePen.SetLineJoin(Gdiplus::LineJoinRound);
 	gdi.DrawLine(&linePen, from3, to3);
 
-	if (m_thresholdMax < 0)
-	{
-		return;
-	}
-
-	// 그래프 영역은  height 에서 위에서 65 떨어져 있고,  아래에서 30 떨어져 있다고 추정된다.
-	//  width 는  좌에서 55 떨어져 있고,  640 의 길이이다.
-	// 아래 두 선을 그어 보므로 알수 있다.
-	//gdi.DrawLine(&linePen, Gdiplus::PointF(0, 65), Gdiplus::PointF(rect.Width(), 65));
-	//gdi.DrawLine(&linePen, Gdiplus::PointF(0, rect.Height() - 30), Gdiplus::PointF(rect.Width(), rect.Height() - 30));
-	// 따라서, 그래프의 높이  graph_height 는   rect.Height - 65 -30 이 된다.
-	
-	float graph_height = rect.Height() - 65.0 - 30.0;
-	// 임계라인의 상대적 위치는
-	float   posY = (m_max - this->m_thresholdMax) / (m_max - m_min);
-	// 이므로,   임계라인의 Y좌표 y1 은
-	float y1 = posY * graph_height + 65.0;
-
-	// 따라서 임계라인은 다음과 같이 그릴 수 있다.
-	Gdiplus::PointF  from2(55, y1);
-	Gdiplus::PointF  to2(55 + 640, y1);
 	Gdiplus::Pen thrpen(Gdiplus::Color(0xff, 0x00, 0x00), 3.0f);
-	gdi.DrawLine(&thrpen, from2, to2);
+
+	for (int i = 0; i < MAX_CAMERA; i++) {
+
+		if (m_thresholdMax[i] < 0)
+		{
+			continue;
+		}
+
+		// 그래프 영역은  height 에서 위에서 65 떨어져 있고,  아래에서 30 떨어져 있다고 추정된다.
+		//  width 는  좌에서 55 떨어져 있고,  640 의 길이이다.
+		// 아래 두 선을 그어 보므로 알수 있다.
+		//gdi.DrawLine(&linePen, Gdiplus::PointF(0, 65), Gdiplus::PointF(rect.Width(), 65));
+		//gdi.DrawLine(&linePen, Gdiplus::PointF(0, rect.Height() - 30), Gdiplus::PointF(rect.Width(), rect.Height() - 30));
+		// 따라서, 그래프의 높이  graph_height 는   rect.Height - 65 -30 이 된다.
+
+		float graph_height = rect.Height() - 65.0 - 30.0;
+		// 임계라인의 상대적 위치는
+		float   posY = (m_max - this->m_thresholdMax[i]) / (m_max - m_min);
+		// 이므로,   임계라인의 Y좌표 y1 은
+		float y1 = posY * graph_height + 65.0;
+
+		// 따라서 임계라인은 다음과 같이 그릴 수 있다.
+		Gdiplus::PointF  from2(55, y1);
+		Gdiplus::PointF  to2(55 + 640, y1);
+		gdi.DrawLine(&thrpen, from2, to2);
+	}
+	//TraceLog(("DrawThreshold start"));
+
 }
 
 void CStaticHelper::LicenseCheck(CPaintDC* pDC, HDC hdc, CStatic *self)
@@ -1811,9 +1818,12 @@ void CStaticHelper::LicenseCheck(CPaintDC* pDC, HDC hdc, CStatic *self)
 }
 
 CStaticHelper::CStaticHelper() : m_currentHBITMAP(0), m_WCCisV6(0), m_testMode(false) 
-, m_thresholdMax(-1.0f), m_thresholdMin(-20.0f)
+, m_thresholdMin(-20.0f)
 {
 	//InitFont(m_normalFont1, "Noto Sans KR Black", 48);
+	for (int i = 0; i < MAX_CAMERA; i++) {
+		m_thresholdMax[i] = -1.0f;
+	}
 }
 
 CStaticHelper::~CStaticHelper() 

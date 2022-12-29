@@ -11,6 +11,10 @@
 #include "chartdir.h"
 #include <afxmt.h>
 
+#ifndef MAX_CAMERA
+#define MAX_CAMERA 8
+#endif
+
 //
 // Constants
 //
@@ -234,7 +238,7 @@ public:
 	void onPaint(CStatic *self);
 	void displayChart(CStatic *self, BaseChart *c);
 
-	float m_thresholdMax;
+	float m_thresholdMax[MAX_CAMERA];
 	float m_thresholdMin;
 	float m_min;
 	float m_max;
@@ -358,7 +362,7 @@ public:
 	//}}AFX_VIRTUAL
 
 	//skpark
-	void SetThreshold(float fmax, int t) { m_thresholdMax = fmax;  m_type = t; }
+	void SetThreshold(float fmax, int index, int t) { m_thresholdMax[index] = fmax;  m_type = t; }
 	void SetRange(float fmax, float fmin) { m_max = fmax; m_min = fmin; }
 	float GetMin() { return m_min; }
 	float GetMax() { return m_max; }

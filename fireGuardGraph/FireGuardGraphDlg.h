@@ -12,53 +12,14 @@
 #include "LogManager.h"
 #include "SMSManagerDlg.h"
 #include "LogManager.h"
+#include "ThresholdHandler.h"
+#include "MultiThresholdHandler.h"
+
+#ifndef MAX_CAMERA
+#define MAX_CAMERA 8
+#endif
 
 class preSocketSession;
-
-class CThresholdHandler
-{
-public:
-	CThresholdHandler(int type, CChartViewer* viewer, CEdit* maxE, 
-		CAnimateCtrl* aniCtrl,  CEdit* frequency = NULL /*, CEdit* deviation = NULL */);
-	virtual ~CThresholdHandler();
-
-	void ReadConfig(LPCTSTR maxDefault, LPCTSTR minDefault);
-	void WriteConfig();
-	void OnStop();
-	void OnApply();
-
-	bool  RunAlarmSound(double value);
-	bool	InitAnimation();
-
-protected:
-	UINT  _RunAlarmSound();
-
-	CEdit*	m_maxEditor;
-	//CEdit*	m_minEditor;
-	CAnimateCtrl* m_aniCtrl;
-	CChartViewer* m_ChartViewer;
-	CEdit*	m_editFrequency;
-	//CEdit*	m_editDeviation;
-	bool   m_isAniOpen;
-	bool   m_isAniPlay;
-
-public:
-	double m_thresholdMax;
-	//float m_thresholdMin;
-	int		m_frequency;
-	//double m_deviation;
-	int		m_type;
-	CString	m_maxName;
-	CString  m_minName;
-
-	bool		hasAleadyPlayed() { return m_isAniPlay;  }
-
-
-
-
-};
-
-
 
 // CfireGuardGraphDlg dialog
 class CfireGuardGraphDlg : public CDialog
@@ -69,7 +30,6 @@ public:
 	~CfireGuardGraphDlg();
 
 	static const int sampleSize = 360;
-	static const int MAX_CAMERA = 8;
 
 	static const int MIN_VELO= -50;
 	static const int MAX_VELO = 200;
@@ -171,11 +131,11 @@ public:
 	afx_msg void OnBnClickedCheckAll();
 	CButton m_checkCameraAll;
 
-	CThresholdHandler*  m_temperThreshold;
+	CMultiThresholdHandler*  m_temperThreshold;
 	CThresholdHandler*  m_velociThreshold;
 	CThresholdHandler*  m_slopeThreshold;
 
-	CEdit m_editThresholdMax;
+	CEdit m_editThresholdMax[MAX_CAMERA];
 	CEdit m_editVelocMax;
 	afx_msg void OnBnClickedButtonMaxApply();
 
@@ -308,4 +268,5 @@ public:
 	afx_msg void OnBnClickedBtShow6();
 	afx_msg void OnBnClickedBtShow7();
 	afx_msg void OnBnClickedBtShow8();
+	CButton m_checkTH[MAX_CAMERA];
 };
