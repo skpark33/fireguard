@@ -2,6 +2,8 @@
 // Microsoft Visual C++에서 생성한 포함 파일입니다.
 // FireGuardCamera.rc에서 사용되고 있습니다.
 //
+#define ID_BT_DELETE                    3
+#define ID_BT_ADD                       4
 #define IDM_ABOUTBOX                    0x0010
 #define IDD_ABOUTBOX                    100
 #define IDS_ABOUTBOX                    101
@@ -31,6 +33,7 @@
 #define IDD_DIGITAL_IO_INFO             136
 #define IDD_THERMAL_TEMPERATURE_INFO    137
 #define IDD_DLG_DETAIL                  138
+#define IDD_DIALOG_SERVER_REGI          139
 #define IDD_NETWORK_IPADDR_INFO         148
 #define IDD_USER_INFO                   149
 #define IDD_MOTION_INFO                 153
@@ -763,10 +766,15 @@
 #define IDC_STATIC_TEMP_VALID_4         1636
 #define IDC_EDIT_TEMP_CENTER_6          1637
 #define IDC_EDIT_TEMP_MIN_6             1638
+#define IDC_EDIT__SERVER_NAME           1638
 #define IDC_EDIT_TEMP_MAX_6             1639
+#define IDC_EDIT_PORT_NO                1639
 #define IDC_EDIT_TEMP_AVG_6             1640
+#define IDC_BUTTON_ADD_SERVER           1640
 #define IDC_EDIT_MIN_X_6                1641
+#define IDC_IPADDRESS_SERVER            1641
 #define IDC_EDIT_MIN_Y_6                1642
+#define IDC_SERVER_LIST                 1642
 #define IDC_EDIT_MAX_X_6                1643
 #define IDC_EDIT_MAX_Y_6                1644
 #define IDC_EDIT_TEMP_CENTER_7          1645
@@ -814,9 +822,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        139
+#define _APS_NEXT_RESOURCE_VALUE        140
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1637
+#define _APS_NEXT_CONTROL_VALUE         1643
 #define _APS_NEXT_SYMED_VALUE           119
 #endif
 #endif

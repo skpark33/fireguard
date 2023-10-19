@@ -258,6 +258,57 @@ CString LoadStringById(UINT nID)
 	return strValue;
 }
 
+bool deleteOldFile(const char* rootDir, int day, int hour, int min, const char* filter)
+{
+	TraceLog(("deleteOldFileByMin(%s,%d,%d,%d%s)", rootDir, day, hour, min, filter));
+
+	std::string dirPath = rootDir;
+	dirPath += filter;
+
+	TraceLog(("target files=%s", dirPath.c_str()));
+
+	HANDLE hFile = NULL;
+	WIN32_FIND_DATA FileData;
+	hFile = FindFirstFile(dirPath.c_str(), &FileData);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		TraceLog(("screenshot file not found"));
+		return false;
+	}
+
+	int deleted_counter = 0;
+
+	CTime referTime = CTime::GetCurrentTime();
+	CTimeSpan spanTime(day, hour, min, 0);
+	referTime = referTime - spanTime;
+
+	do {
+		if (strncmp(FileData.cFileName, "..", 2) == 0 || strncmp(FileData.cFileName, ".", 1) == 0) {
+			continue;
+		}
+		if (FileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+			std::string subDir = rootDir;
+			subDir += FileData.cFileName;
+			subDir += "//";
+			deleteOldFile(subDir.c_str(), day, hour, min, filter);
+			continue;
+		}
+
+		std::string filename = FileData.cFileName;
+
+		CTime fileTime(FileData.ftLastWriteTime);
+		if (fileTime < referTime) {
+			std::string delFilePath = rootDir;
+			delFilePath += filename;
+			::remove(delFilePath.c_str());
+			deleted_counter++;
+			TraceLog(("%s file deleted", delFilePath.c_str()));
+		}
+
+	} while (FindNextFile(hFile, &FileData));
+
+	FindClose(hFile);
+	return true;
+}
 
 
 

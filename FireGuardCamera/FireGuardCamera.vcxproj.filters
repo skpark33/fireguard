@@ -162,6 +162,9 @@
     <ClCompile Include="ThermalDetailDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ServerRegiDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioPlayer.h">
@@ -324,6 +327,9 @@
       <Filter>skpark</Filter>
     </ClInclude>
     <ClInclude Include="ThermalDetailDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerRegiDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

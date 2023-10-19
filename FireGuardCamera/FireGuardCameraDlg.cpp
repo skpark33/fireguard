@@ -34,6 +34,7 @@
 #include "skpark/FireProcess.h"
 #include "skpark/util.h"
 #include "ThermalDetailDlg.h"
+#include "ServerRegiDlg.h"
 
 static char gszCurDir[MAX_PATH] = "";
 
@@ -2067,15 +2068,22 @@ void CFireGuardCameraDlg::OnBnClickedButtonThermalSpot()
 
 void CFireGuardCameraDlg::OnBnClickedButtonDigitalIo()
 {
-	if (theApp.m_hSelectCamera == NULL) {
-		MessageBox(("Select camera."));
-		return;
-	}
-	int nSel = m_List_Camera.GetSelectionMark();
-	if (nSel != -1) {
-		CDigitalIOInfoDlg Dlg;
-		Dlg.DoModal();
-	}
+	//skpark in your area 기존소스부분이다. [
+	//if (theApp.m_hSelectCamera == NULL) {
+	//	MessageBox(("Select camera."));
+	//	return;
+	//}
+	//int nSel = m_List_Camera.GetSelectionMark();
+	//if (nSel != -1) {
+	//	CDigitalIOInfoDlg Dlg;
+	//	Dlg.DoModal();
+	//}
+	//]  기존소스를 막고 연동할 서버를 등록하는 화면으로 바꾼다.
+
+	CServerRegiDlg Dlg;
+	Dlg.DoModal();
+
+
 }
 
 

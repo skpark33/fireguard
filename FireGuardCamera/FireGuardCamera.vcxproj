@@ -187,7 +187,8 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(OutDir)$(TargetName)$(TargetExt)  $(OutDir)\..\..\bin\$(TargetName)$(TargetExt)</Command>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt)  $(OutDir)\..\..\bin\$(TargetName)$(TargetExt)
+copy $(OutDir)$(TargetName)$(TargetExt)  $(OutDir)\..\..\..\..\release\$(TargetName)$(TargetExt)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -269,6 +270,7 @@
     <ClCompile Include="PPPoEInfoDlg.cpp" />
     <ClCompile Include="PrivacyMaskInfoDlg.cpp" />
     <ClCompile Include="SerialPortInfoDlg.cpp" />
+    <ClCompile Include="ServerRegiDlg.cpp" />
     <ClCompile Include="skpark\FireProcess.cpp" />
     <ClCompile Include="skpark\NetworkAdapter.cpp" />
     <ClCompile Include="skpark\sockUtil.cpp" />
@@ -327,6 +329,7 @@
     <ClInclude Include="PrivacyMaskInfoDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SerialPortInfoDlg.h" />
+    <ClInclude Include="ServerRegiDlg.h" />
     <ClInclude Include="SetupDlg.h" />
     <ClInclude Include="skpark\FireProcess.h" />
     <ClInclude Include="skpark\NetworkAdapter.h" />

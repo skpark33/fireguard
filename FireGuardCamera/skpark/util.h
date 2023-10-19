@@ -19,3 +19,6 @@ HWND getWHandle(const char* exename, bool likeCond=false);
 
 CString LoadStringById(UINT nID);
 
+bool deleteOldFile(const char* rootDir, int day, int hour, int min, const char* filter);
+
+
