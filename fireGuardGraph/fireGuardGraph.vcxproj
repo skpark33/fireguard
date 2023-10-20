@@ -186,7 +186,8 @@
     </ResourceCompile>
     <PostBuildEvent>
       <Message>Copying ChartDirector DLL to output directory (if necessary)</Message>
-      <Command>echo f | xcopy /D /Y /C $(OutDir)$(TargetName)$(TargetExt)  $(OutDir)\..\..\bin\$(TargetName)$(TargetExt)
+      <Command>echo f | xcopy /D /Y /C $(OutDir)$(TargetName)$(TargetExt)  $(OutDir)\..\..\bin\$(TargetName)$(TargetExt)\
+echo f | xcopy /D /Y /C $(OutDir)$(TargetName)$(TargetExt)  $(OutDir)\..\..\..\..\release\$(TargetName)$(TargetExt)
 </Command>
     </PostBuildEvent>
     <Manifest>
@@ -272,6 +273,7 @@
     <ClCompile Include="FireGuardGraphDlg.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="FireProcess.cpp" />
     <ClCompile Include="LogManager.cpp" />
     <ClCompile Include="MultiThresholdHandler.cpp" />
     <ClCompile Include="preSocketSession.cpp">
@@ -316,6 +318,7 @@
     <ClInclude Include="ci\libBase\ciWin32DLL.h" />
     <ClInclude Include="FireGuardGraph.h" />
     <ClInclude Include="FireGuardGraphDlg.h" />
+    <ClInclude Include="FireProcess.h" />
     <ClInclude Include="LogManager.h" />
     <ClInclude Include="MultiThresholdHandler.h" />
     <ClInclude Include="preSocketSession.h" />

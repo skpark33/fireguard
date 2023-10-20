@@ -19,6 +19,10 @@ class CServerRegiDlg : public CDialogEx
 	DECLARE_DYNAMIC(CServerRegiDlg)
 
 public:
+	static std::map<CString, RECEIVER_INFO> receiverMap;
+
+
+
 	CServerRegiDlg(CWnd* pParent = NULL);   // 표준 생성자입니다.
 	virtual ~CServerRegiDlg();
 
@@ -34,7 +38,6 @@ protected:
 
 	int m_selected;
 	int m_foundedCount;
-	static std::map<CString, RECEIVER_INFO> receiverMap;
 	void SaveServerInfo(const char* id, const char* name, const char* ip, const char* port);
 	void GetInfoFromIni();
 	void insertItemAll();

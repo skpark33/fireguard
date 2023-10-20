@@ -1,3 +1,4 @@
+/* 이 파일은  GuardianCenter 과 fireGuardGraph  프로젝트에서 공통으로 쓰이는 파일이다. 항상 동일해야 한다.*/
 #include "stdAfx.h"
 #   define VERSION_MAJOR         2
 #   define VERSION_MINOR         0
@@ -85,7 +86,7 @@ sockUtil::dialog(const char* ipAddress,
 				 const char* input, 
 				 string& output)
 {
-	//TraceLog(("dialog(%s,%d,%s)\n", ipAddress, portNo,input));
+	TraceLog(("dialog(%s,%d,%s)\n", ipAddress, portNo,input));
 
 	SOCKET socket_fd;		
 	if ((socket_fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
@@ -132,9 +133,11 @@ sockUtil::dialog(const char* ipAddress,
 				 int waitTime,
 				 const char* input, 
 				 string& output,
-				 string& errMsg)
+				 string& errMsg,
+				 int timeoutMillis /* = 0 */
+				 )
 {
-	//TraceLog(("dialog(%s,%d,%s)\n", ipAddress, portNo,input));
+	TraceLog(("dialog(%s,%d,%s)\n", ipAddress, portNo,input));
 
 	char err_buf[256];
 	memset(err_buf,0x00,256);
@@ -152,31 +155,42 @@ sockUtil::dialog(const char* ipAddress,
 	server_addr.sin_addr.s_addr = inet_addr(ipAddress);
 	server_addr.sin_port = htons(portNo);
 
-	if (connect(socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
-		sprintf(err_buf,"Can't connect IP server.[%s:%d]\n", ipAddress, portNo);
-		closesocket(socket_fd);
-		errMsg=err_buf;
-		return false;
+	if (timeoutMillis > 0) {
+		socket_fd = ConnectWithTimeout((struct sockaddr *)&server_addr, timeoutMillis);
+		if (socket_fd == INVALID_SOCKET) {
+			sprintf(err_buf, "Can't connect IP server.[%s:%d]\n", ipAddress, portNo);
+			closesocket(socket_fd);
+			errMsg = err_buf;
+			return false;
+		}
 	}
-	//TraceLog(("socket connect (%s,%d)\n", ipAddress, portNo));
+	else {
+		if (connect(socket_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
+			sprintf(err_buf, "Can't connect IP server.[%s:%d]\n", ipAddress, portNo);
+			closesocket(socket_fd);
+			errMsg = err_buf;
+			return false;
+		}
+	}
+	TraceLog(("socket connect (%s,%d)\n", ipAddress, portNo));
 
-	//TraceLog(("send start (%s)\n", input));
+	TraceLog(("send start (%s)\n", input));
 	if(!talk(socket_fd,input,CLASS_REGACY,false)){
 		sprintf(err_buf,"Can't send to server.[%s]\n", ipAddress);
 		closesocket(socket_fd);
 		errMsg=err_buf;
 		return false;
 	}
-	//TraceLog(("send end\n"));
+	TraceLog(("send end\n"));
 
-	//TraceLog(("receive start ()\n"));
+	TraceLog(("receive start ()\n"));
 	if(!hear(socket_fd,waitTime,output)){
 		sprintf(err_buf,"Can't receive from server.[%s]\n", ipAddress);
 		closesocket(socket_fd);
 		errMsg=err_buf;
 		return false;
 	}
-	//TraceLog(("receive end\n"));
+	TraceLog(("receive end\n"));
 
 	closesocket(socket_fd);	
 	return true;
@@ -186,7 +200,6 @@ sockUtil::dialog(const char* ipAddress,
 boolean
 sockUtil::talk(SOCKET socket_fd, const char* input,const char* classCode, boolean interactive)
 {
-
 	int len = strlen(input);
 	if(len==0){
 		return false;
@@ -202,7 +215,6 @@ sockUtil::talk(SOCKET socket_fd, const char* input,const char* classCode, boolea
 	}else{
 		this->addHeader(buf.c_str(),classCode,interactive,value);
 	}
-	//TraceLog(("talk(%s)", value.c_str()));
 	int msg_size;
 	if ((msg_size = send(socket_fd, value.c_str(), (int)value.size(), 0)) <= 0) {
 		TraceLog(("Can't send to server\n"));
@@ -475,4 +487,51 @@ sockUtil::addHeader(const char* input, const char* classCode, boolean interactiv
 	sprintf(header,"%c%d%4.4s%05d",SOCK_DATA_STARTER,interactive, classCode,strlen(input));
 	output = header;
 	output += input;
+}
+
+
+SOCKET sockUtil::ConnectWithTimeout(const sockaddr* serverAddr,  int timeoutMillis) {
+	
+	SOCKET clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (clientSocket == INVALID_SOCKET) {
+		return INVALID_SOCKET;
+	}
+
+	// Set the socket to non-blocking mode
+	u_long mode = 1;
+	ioctlsocket(clientSocket, FIONBIO, &mode);
+
+	// Try to connect
+	int result = connect(clientSocket, serverAddr, sizeof(*serverAddr));
+	if (result == SOCKET_ERROR) {
+		if (WSAGetLastError() != WSAEWOULDBLOCK) {
+			closesocket(clientSocket);
+			return INVALID_SOCKET;
+		}
+
+		// Use select to check for the timeout
+		fd_set writeSet;
+		FD_ZERO(&writeSet);
+		FD_SET(clientSocket, &writeSet);
+
+		struct timeval timeout;
+		timeout.tv_sec = timeoutMillis / 1000;
+		timeout.tv_usec = (timeoutMillis % 1000) * 1000;
+
+		result = select(0, NULL, &writeSet, NULL, &timeout);
+		if (result == 0) {
+			// Timeout
+			closesocket(clientSocket);
+			return INVALID_SOCKET;
+		}
+		else if (result == SOCKET_ERROR) {
+			closesocket(clientSocket);
+			return INVALID_SOCKET;
+		}
+	}
+
+	// Reset the socket to blocking mode
+	mode = 0;
+	ioctlsocket(clientSocket, FIONBIO, &mode);
+	return clientSocket;
 }

@@ -76,7 +76,7 @@ void CThresholdHandler::ReadConfig(LPCTSTR maxDefault,  LPCTSTR minDefault)
 	if (m_editFrequency)
 	{
 		memset(buf, 0x00, 512);
-		GetPrivateProfileString("FIRE_WATCH", "FREQUENCY", "100", buf, 512, iniPath);
+		GetPrivateProfileString("FIRE_WATCH", "FREQUENCY", "60", buf, 512, iniPath);
 		m_frequency = atoi(buf);
 		m_editFrequency->SetWindowTextA(buf);
 	}

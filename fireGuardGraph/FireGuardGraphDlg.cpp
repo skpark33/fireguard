@@ -14,6 +14,7 @@
 #include "SelectCameraDlg.h"
 #include "ci/libAes256/ciElCryptoAes256.h"
 #include "skpark/util.h"
+#include "FireProcess.h"
 
 using namespace std;
 
@@ -38,7 +39,7 @@ using namespace std;
 
 static const int DataRateTimer = 1;
 static const int ChartUpdateTimer = 2;
-static const int DataInterval = 250;
+static const int DataInterval = 1000;
 static const int FrequencyTimer = 3;
 
 //
@@ -58,7 +59,7 @@ CfireGuardGraphDlg::CfireGuardGraphDlg(CWnd* pParent /*=NULL*/)
 	m_TrendLogger = new LogManager("Trend");
 
     m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	m_updatePeriod = 250;
+	m_updatePeriod = 1000;
 
 	CString iniPath = UBC_CONFIG_PATH;
 	iniPath += UBCBRW_INI;
@@ -276,7 +277,7 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
 	iniPath += UBCBRW_INI;
 	char buf[512];
 	memset(buf, 0x00, 512);
-	GetPrivateProfileStringA("FIRE_WATCH", "UPDATE_PERIOD", "250", buf, 511, iniPath);
+	GetPrivateProfileStringA("FIRE_WATCH", "UPDATE_PERIOD", "1000", buf, 511, iniPath);
 	m_updatePeriod = _tcstol(buf, 0, 0);
 	m_CBUpdatePeriod.SelectString(0, buf);
 
@@ -324,13 +325,14 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
 		&m_VelocViewer, &m_editVelocMax,
 		&m_aniVelocCtrl, &m_editFrequency); // , &m_editDevi);
 
-	m_velociThreshold->ReadConfig("200.0", "-50.0");
+	m_velociThreshold->ReadConfig("5", "-5");
 	m_velociThreshold->InitAnimation();
 
 	TraceLog(("skpark ----------------------:%f, %d", m_velociThreshold->m_thresholdMax, int(m_velociThreshold->m_thresholdMax / 4.0)));
 	CString veloStr;
 	veloStr.Format("= %d 초", int(m_velociThreshold->m_thresholdMax / 4.0));
 	m_stVeloSec.SetWindowTextA(veloStr);
+	m_stVeloSec.ShowWindow(SW_HIDE);
 
 
 	m_slopeThreshold = new CThresholdHandler(
@@ -359,7 +361,7 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
 	
 	OnRunPB();
 	
-	SetTimer(FrequencyTimer, DataInterval + 10, 0);
+	//SetTimer(FrequencyTimer, DataInterval + 10, 0);
 	
 	m_ChartViewer.SetRange(MAX_THRESHOLD, MIN_THRESHOLD);
 	m_VelocViewer.SetRange(MAX_VELO, MIN_VELO);
@@ -589,6 +591,8 @@ void CfireGuardGraphDlg::OnDataTimer()
 	double now = Chart::chartTime(st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute,
 		st.wSecond) + st.wMilliseconds / 1000.0;
 
+	TraceLog(("message received , st.wSecond = %d,  %d", st.wSecond, DataInterval));
+
 	static int timeCounter = 0;
 	timeCounter++;
 	SetCounter(timeCounter, -1.0f);
@@ -649,10 +653,10 @@ void CfireGuardGraphDlg::OnDataTimer()
 			{
 				continue;
 			}
-			m_dataSeries[j][m_currentIndex] = value;
+			m_dataSeries[j][m_currentIndex] = value;  // 최근 온도값을 넣고
 			if (m_max_temperature < value)
 			{
-				m_max_temperature = value;
+				m_max_temperature = value;  //지금까지 온도중 최고값을 항상 갱신하면서...
 			}
 
 			//if (j >= MAX_CAMERA){
@@ -670,8 +674,25 @@ void CfireGuardGraphDlg::OnDataTimer()
 			{
 				// 면적을 구하기 위해서 기울기를 합산한다.
 				// 면적이 지속적으로 양의 값을 기록한다면 온도가 지속적으로 상승하고 있다고 볼 수  있다.
-				double deviation = 0.0f;
-				m_rateSeries[j][m_currentIndex] = Formula(j, m_currentIndex, m_velociThreshold->m_frequency);
+				// 여기서  m_frequency 는 돗수를 의미하는데, 디폴트는 100 이다.  즉 100개 값을 합산한다.
+
+				// 이 포뮬라의 결과로 기울기 값이 m_slopeSeries 에 들어있게 되고,
+				// 이 포뮬라는 100개의 평균을 리턴하므로,   m_rateSeries 에는 평균값이 들어있게 된다.  그런데,,rate 는 사용되지 않는다.
+				//double deviation = 0.0f;
+				//m_rateSeries[j][m_currentIndex] = Formula(j, m_currentIndex, m_velociThreshold->m_frequency);
+				
+				// slopeSeries 에 기울기값을 넣는다.
+				Formula1(j, m_currentIndex, m_velociThreshold->m_frequency);
+				// countSeries 에 이동평균 값을 넣는다.
+				Formula2(j, m_currentIndex, m_velociThreshold->m_frequency);
+				// countSeries slope  를 모두 더한 값을 넣는다.
+				//Formula3(j, m_currentIndex, m_velociThreshold->m_frequency);
+
+
+
+
+				// slope를 돗수 만큼 다시 더해서, 양의 값을 기록하면,  다시  countSeries 에 넣고, 이게 임계치를 넘으면 상승으로 본다???
+
 				
 				//if (m_rateSeries[j][m_currentIndex] > 0)
 				//{
@@ -686,16 +707,23 @@ void CfireGuardGraphDlg::OnDataTimer()
 				
 				
 				//if (m_rateSeries[j][m_currentIndex]  > 0 )  // 적분값이 0 보다 크면 상승중인 것이다.  값이 이전보다 줄어든 것은 다만, 상승률이 둔화된 것이다.
-				if (isIncrease(j, m_currentIndex, m_velociThreshold->m_frequency))
-					{
-						// 상승분은 시간 milli second 만큼으로 보는데, 현재는 Data 인터벌이 250 이므로 1/4 초가 하나의 돗수가 된다. 
-						m_countSeries[j][m_currentIndex] = m_countSeries[j][m_currentIndex - 1] + (DataInterval / 1000.0f);
-					}
-					else
-					{
-						m_countSeries[j][m_currentIndex] = 0.0f;
-					}
-				
+				//if (isIncrease(j, m_currentIndex, m_velociThreshold->m_frequency))
+				//if (m_rateSeries[j][m_currentIndex] > 0)  // rate 에는  slope 를 다 더한 값이 들어있다.
+				//{
+				//	// 상승분은 시간 milli second 만큼으로 보는데, 현재는 Data 인터벌이 250 이므로 1/4 초가 하나의 돗수가 된다. 
+				//	m_countSeries[j][m_currentIndex] = m_countSeries[j][m_currentIndex - 1] + (DataInterval / 1000.0f);
+				//}
+				//else
+				//{
+				//	m_countSeries[j][m_currentIndex] = 0.0f;
+				//}
+				// external !!!!
+				double value = m_countSeries[j][m_currentIndex];
+				double threshold = atof(FireProcess::getInstance()->trendThreshold);
+				int level = value < threshold ? 0 : 1;
+				CString  stream;
+				stream.Format("TREND/%d/%.2f/%d/%.1f", j+1, value, level, threshold);
+				FireProcess::getInstance()->exPush(stream);
 				
 				
 				//}
@@ -740,6 +768,10 @@ void CfireGuardGraphDlg::OnDataTimer()
 							hasTemperBgChanged[j] = true;
 							preSocketHandler::getInstance()->pushCommand("POPUP", j, 1); // popup 으로 화면을 띠울것을 요청한다.
 							SendSMS(j + 1, TEMPER_OVER, value);
+							
+							//CString aData = EXTERNAL_MSG_PREFIX;
+							//aData.Format("%sTEMP_OVER/%d/%.00f/%.00f", EXTERNAL_MSG_PREFIX, j, value, m_temperThreshold->m_thresholdMax[j]);
+							//FireProcess::getInstance()->exDialog(aData);  // external
 					}
 					m_AlarmLogger->SaveLog(idStr, value);
 					break;
@@ -805,8 +837,10 @@ void CfireGuardGraphDlg::OnDataTimer()
 
 		++m_currentIndex;
 		m_nextDataTime += DataInterval / 1000.0;
-	} while (m_nextDataTime < now);
 
+		//TraceLog(("message received gap=%f", now-m_nextDataTime));
+	} while (m_nextDataTime < now);
+	TraceLog(("message received gap=%f", now - m_nextDataTime));
 	//
 	// We provide some visual feedback to the latest numbers generated, so you can see the
 	// data being generated.
@@ -1359,17 +1393,113 @@ void CfireGuardGraphDlg::OnBnClickedBtVelocStop()
 }
 bool  CfireGuardGraphDlg::isIncrease(int cameraId, int currentIndex, int frequency)
 {
-	// 그냥,  앞의 숫자보다 크면 양의 값을 아니면 음의 값을 리턴한다.
 	
+	// 그냥,  앞의 숫자보다 크면 양의 값을 아니면 음의 값을 리턴한다.
 	bool retval = (m_rateSeries[cameraId][currentIndex] - m_rateSeries[cameraId][currentIndex-1] > 0);
 	//TraceLog(("2022: %d , rate[%d]=%0.2f, rate[%d]=%0.2f", (retval ? 1 : 0), currentIndex, m_rateSeries[cameraId][currentIndex], currentIndex - 1, m_rateSeries[cameraId][currentIndex - 1]));
 	return retval;
 
 }
 
+void  CfireGuardGraphDlg::Formula1(int cameraId, int currentIndex, int frequency)
+{
+	static bool isFirstTime = true;
+
+	// frequency 는 표본의 크기를 의미한다.
+	int startIdx = ((currentIndex > frequency) ? currentIndex - frequency : 0);
+	int endIdx = currentIndex;
+
+	std::vector<double> temperVector;
+	//한칸씩 이동하면서,  한칸씩 옆으로 이동하면서, 
+	for (int i = startIdx; i <= endIdx; i++)
+	{
+		double curVal = GetDataValue(cameraId, i);  // 과거 100개 전부터 온도값을 하나씩 꺼내와서..
+		temperVector.push_back(curVal);
+	}
+	// 표번 100개의 기울기를 구했다.
+	double slope = getSlope(temperVector);
+	
+	if (currentIndex > frequency)  // 처음 frequency 개 값을 버린다.
+	{
+		isFirstTime = false;
+	}
+	if (!isFirstTime)  // 처음 frequency 개 값을 버린다.  currentIndex 값은 일정시간이 지나면 frequency 보다 항상 큰 값이다. ( m_currentIndex = sampleSize -1) 따라서 처음에 frequency 값만 버리게 된다.
+	{
+		// 기울기 값이 m_slopeSeries 에 들어 간다.
+		m_slopeSeries[cameraId][currentIndex] = slope;
+	}
+
+}
+
+void  CfireGuardGraphDlg::Formula2(int cameraId, int currentIndex, int frequency)
+{
+	static bool isFirstTime = true;
+
+	// frequency 는 표본의 크기를 의미한다.
+	int startIdx = ((currentIndex > frequency) ? currentIndex - frequency : 0);
+	int endIdx = currentIndex;
+
+	std::vector<double> slopeVector;
+	//한칸씩 이동하면서,  한칸씩 옆으로 이동하면서, 
+	double sum = 0;
+	int count = 0;
+	for (int i = startIdx; i <= endIdx; i++)
+	{
+		double curVal = m_slopeSeries[cameraId][i];  // 과거 100개 전부터 온도값을 하나씩 꺼내와서..
+		sum += curVal;
+		count++;
+	}
+	// 100개의
+	//double avg = movingAverage(slopeVector, frequency);
+	double avg = sum / count;
+
+	if (currentIndex > frequency)  // 처음 frequency 개 값을 버린다.
+	{
+		isFirstTime = false;
+	}
+	if (!isFirstTime)  // 처음 frequency 개 값을 버린다.  currentIndex 값은 일정시간이 지나면 frequency 보다 항상 큰 값이다. ( m_currentIndex = sampleSize -1) 따라서 처음에 frequency 값만 버리게 된다.
+	{
+		// 이동 평균 값이 m_rateSeries 에 들어 간다.
+		m_countSeries[cameraId][currentIndex] = avg;
+	}
+
+}
+
+
+void  CfireGuardGraphDlg::Formula3(int cameraId, int currentIndex, int frequency)
+{
+	static bool isFirstTime = true;
+
+	// frequency 는 표본의 크기를 의미한다.
+	int startIdx = ((currentIndex > frequency) ? currentIndex - frequency : 0);
+	int endIdx = currentIndex;
+
+	// 100개의
+	double sum = 0;
+		std::vector<double> slopeVector;
+	//한칸씩 이동하면서,  한칸씩 옆으로 이동하면서, 
+	for (int i = startIdx; i <= endIdx; i++)
+	{
+		double curVal = m_slopeSeries[cameraId][i];  // 과거 100개 전부터 온도값을 하나씩 꺼내와서..
+		sum += curVal;  // 기울기를 다 더한다.
+ 	}
+
+	if (currentIndex > frequency)  // 처음 frequency 개 값을 버린다.
+	{
+		isFirstTime = false;
+	}
+	if (!isFirstTime)  // 처음 frequency 개 값을 버린다.  currentIndex 값은 일정시간이 지나면 frequency 보다 항상 큰 값이다. ( m_currentIndex = sampleSize -1) 따라서 처음에 frequency 값만 버리게 된다.
+	{
+		// 이동 평균 값이 m_slopeSeries 에 들어 간다.
+		// rate 에 넣을 예정이지만, 임시로 count 에 넣어본다.
+		m_rateSeries[cameraId][currentIndex] = sum;
+	}
+
+}
+
 double  CfireGuardGraphDlg::Formula(int cameraId, int currentIndex, int frequency)
 {
-	
+
 	// 회귀분석 모델이 적분값을 리턴한다.
 	static bool isFirstTime = true;
 
@@ -1381,43 +1511,47 @@ double  CfireGuardGraphDlg::Formula(int cameraId, int currentIndex, int frequenc
 	double sumX = 0.0f;
 	double sumY = 0.0f;
 	double count = 0.0f;
-	
 
+	std::vector<double> temperVector;
+	//한칸씩 이동하면서,  한칸씩 옆으로 이동하면서, 
 	for (int i = startIdx; i <= endIdx; i++)
 	{
-		double curVal = GetDataValue(cameraId, i);
-		
-		count += 1.0f;
-		sumY += curVal;
-		sumX += m_timeStamps[i];    // timeStamp는  우상향하는 직선그래프이다.   
-	}
-	
-
-	// 표본 평균
-	double avgY = sumY / count;
-	double avgX = sumX / count;      // 평균은 측정표본의 중간시점이 된다.
-
-	// 표본 분산
-	double dYY = 0.0f;
-	double dXX = 0.0f;
-	double dXY = 0.0f;
-	for (int i = startIdx; i <= endIdx; i++)
-	{
-		double dy = GetDataValue(cameraId, i) - avgY;
-		double dx = abs(m_timeStamps[i] - avgX); // dx 는 절대값으로 처리해야 한다.
-		dYY += pow(dy, 2);
-		dXX += pow(dx, 2);  
-		dXY += dy*dx;
+		double curVal = GetDataValue(cameraId, i);  // 과거 100개 전부터 온도값을 하나씩 꺼내와서..
+		temperVector.push_back(curVal);
+		//count += 1.0f;
+		//sumY += curVal;  // 과거 100개 온도를 모두 더한다. .
+		//sumX += m_timeStamps[i];    // timeStamp는  우상향하는 직선그래프이다.   DataInterval 초 단위로 상승하는 값이다. 
 	}
 
-	if (dXY == 0 ||  dXX == 0)
-	{
-		return 0.0f;
-	}
+	// 표번 100개의 기울기를 구했다.
+	double slope = getSlope(temperVector);
 
-	// 기울기 와 y절편
-	double slope =  dXY/dXX;
-	double bias = avgY - slope*avgX;
+
+	//// 표본 평균
+	//double avgY = sumY / count;		// 과거 100개의 평균온도
+	//double avgX = sumX / count;      // 평균은 측정표본의 중간시점이 된다.
+
+	//// 표본 분산
+	//double dYY = 0.0f;
+	//double dXX = 0.0f;
+	//double dXY = 0.0f;
+	//for (int i = startIdx; i <= endIdx; i++)
+	//{
+	//	double dy = GetDataValue(cameraId, i) - avgY;
+	//	double dx = abs(m_timeStamps[i] - avgX); // dx 는 절대값으로 처리해야 한다.
+	//	dYY += pow(dy, 2);
+	//	dXX += pow(dx, 2);  
+	//	dXY += dy*dx;
+	//}
+
+	//if (dXY == 0 ||  dXX == 0)
+	//{
+	//	return 0.0f;
+	//}
+
+	//// 기울기 와 y절편
+	//double slope =  dXY/dXX;
+	//double bias = avgY - slope*avgX;
 
 	// 이전의 frequency-1 개의 slope를 모두 더해서, 그 값을 range 번째에 넣는다.
 	// 이 값이 양이면 range 기간동안 온도가 상승한 것이고, 음이면 하락한 것이다.
@@ -1427,12 +1561,13 @@ double  CfireGuardGraphDlg::Formula(int cameraId, int currentIndex, int frequenc
 	}
 	if (!isFirstTime)  // 처음 frequency 개 값을 버린다.  currentIndex 값은 일정시간이 지나면 frequency 보다 항상 큰 값이다. ( m_currentIndex = sampleSize -1) 따라서 처음에 frequency 값만 버리게 된다.
 	{
+		// 기울기 값이 m_slopeSeries 에 들어 간다.
 		m_slopeSeries[cameraId][currentIndex] = slope;
 	}
 
 	//TraceLog(("startIdx=%d,endIdx=%d", startIdx, endIdx));
-	
-	 // 2022.08.198 . 그냥 이전값과의 차를 리턴하는 것으로...
+
+	// 2022.08.198 . 그냥 이전값과의 차를 리턴하는 것으로...
 	// slope 값을 모두 더한다.
 	//double retval = 0.0f;
 	//for (int i = startIdx; i <= endIdx; i++)
@@ -1440,9 +1575,67 @@ double  CfireGuardGraphDlg::Formula(int cameraId, int currentIndex, int frequenc
 	//	retval += m_slopeSeries[cameraId][i];
 	//}
 	//return retval;
-	 
+
 	// 그냥 표본평균을 리턴한다.
-	return avgY;  
+	return getAverage(temperVector);
+}
+double CfireGuardGraphDlg::getSlope(const std::vector<double>& temperatures) {
+	// 표본 n 개의 기울기를 구하는 공식이다.
+	int n = temperatures.size();
+	if (n == 0) {
+		// No data points
+		return 0.0;
+	}
+
+	double sumX = 0.0;
+	double sumY = 0.0;
+	double sumXY = 0.0;
+	double sumX2 = 0.0;
+
+	for (int i = 0; i < n; i++) {
+		sumX += i;
+		sumY += temperatures[i];
+		sumXY += i * temperatures[i];
+		sumX2 += i * i;
+	}
+
+	double numerator = n * sumXY - sumX * sumY;
+	double denominator = n * sumX2 - sumX * sumX;
+
+	if (denominator == 0.0) {
+		// Avoid division by zero
+		return 0.0;
+	}
+
+	return numerator / denominator;
+}
+
+
+double CfireGuardGraphDlg::movingAverage(const std::vector<double>& data, int period) {
+	int n = data.size();
+	//std::vector<double> result;
+	for (int i = 0; i < n - period + 1; i++) {
+		double sum = 0.0;
+		for (int j = i; j < i + period; j++) {
+			sum += data[j];
+		}
+		return  (sum / period);
+	}
+}
+
+double CfireGuardGraphDlg::getAverage(const std::vector<double>& values) {
+	int n = values.size();
+	if (n == 0) {
+		// No data points
+		return 0.0;
+	}
+
+	double sum = 0.0;
+	for (double value : values) {
+		sum += value;
+	}
+
+	return sum / n;
 }
 
 void CfireGuardGraphDlg::OnBnClickedCheckAlarm()

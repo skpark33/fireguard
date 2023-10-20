@@ -1,3 +1,4 @@
+/* 이 파일은  GuardianCenter 과 fireGuardGraph  프로젝트에서 공통으로 쓰이는 파일이다. 항상 동일해야 한다.*/
 #ifndef _FireProcess_h_
 #define _FireProcess_h_
 #include "stdafx.h"
@@ -11,11 +12,18 @@
 
 #define MAX_CAMERA 8
 #define MAX_SIM_DATA  360
-#define WM_TEMPERATURE_ALARM 1049
-
 #define EXTERNAL_MSG_PREFIX    "external/"
 
-class CFireGuardCameraDlg;
+#ifndef __GUARDIAN_CENTER__
+using namespace std;
+#endif
+
+class RECEIVER_INFO {
+public:
+	CString name;
+	CString ip;
+	CString port;
+};
 
 class FireData
 {
@@ -36,11 +44,20 @@ public:
 	static void	clearInstance();
 	static UINT  ProcessEvent(LPVOID pParam);
 	static UINT  exProcessEvent(LPVOID pParam);
+	
+	std::map<CString, RECEIVER_INFO> receiverMap; 
+	std::map<int, CString>  thresholdMap;
+	CString trendThreshold;
+
+	void GetInfoFromIni();
+	int m_foundedCount;
 
 	virtual ~FireProcess();
 	const char*	getLastError() { return _errStr; }
+	
 	void	Push(float temperature, int level, LPCTSTR serialNo);
 	void	exPush(CString stream);
+	
 	void Clear();
 	void exClear();
 	bool  Pop(FireData&  data);
@@ -56,47 +73,29 @@ public:
 	float GenerateTemperature();
 	static UINT  GenerateData(LPVOID pParam);
 
-	void SetDlg(CFireGuardCameraDlg* dlg) { _dlg = dlg; }
-
-	CString id;
-	CString pwd;
-	int monitor_sec;
-
 protected:
 	FireProcess();
 	static FireProcess*	_instance;
-
-	CFireGuardCameraDlg*	_dlg;
 
 	CString _errStr;
 	FireDataList		_list;
 	CCriticalSection	_lock;
 
-	list<CString>		_exlist;
+	std::list<CString>		_exlist;
 	CCriticalSection	_exlock;
 
 	CWinThread*  m_pThread;
 	CWinThread*  m_pExThread;
 	CWinThread*  m_pSimulatorThread;
-
 	CString _ipAddress;
 	int _port;
 	bool _isAlive;
-
+	
 	bool	_isStart;
 
 	//simulator
 	CString _serialNo;
 	float _simArray[MAX_CAMERA][MAX_SIM_DATA];
-
-	//CCriticalSection	_popupLock;
-	//list<int>	_popupList;
-
-//	void _pushPopup(int cameraId);
-public:
-//	int popPopup();
-	
-
 };
 
 #endif // _FireProcess_h_

@@ -14,6 +14,7 @@
 #include "LogManager.h"
 #include "ThresholdHandler.h"
 #include "MultiThresholdHandler.h"
+#include "vector"
 
 #ifndef MAX_CAMERA
 #define MAX_CAMERA 8
@@ -31,8 +32,8 @@ public:
 
 	static const int sampleSize = 360;
 
-	static const int MIN_VELO= -50;
-	static const int MAX_VELO = 200;
+	static const int MIN_VELO= -5;
+	static const int MAX_VELO = 5;
 
 	static const int MIN_THRESHOLD = -50;
 	static const int MAX_THRESHOLD = 500;
@@ -115,6 +116,9 @@ private:
 	// utility to load icon resource to a button
 	void loadButtonIcon(int buttonId, int iconId, int width, int height);
 
+	double getSlope(const std::vector<double>& temperatures);
+	double getAverage(const std::vector<double>& values);
+
 public:
 	CFont*	m_font;
 	preSocketSession* m_session;
@@ -161,6 +165,13 @@ public:
 		return (retval == _NO_VALUE_ || retval == Chart::NoValue ? 0.0f : retval);
 	}
 	double  Formula(int cameraId, int currentIndex, int frequency);
+	void  Formula1(int cameraId, int currentIndex, int frequency);
+	void  Formula2(int cameraId, int currentIndex, int frequency);
+	void  Formula3(int cameraId, int currentIndex, int frequency);
+
+	double movingAverage(const std::vector<double>& data, int period);
+	std::vector<double> exponentialMovingAverage(const std::vector<double>& data, double alpha);
+
 	bool  isIncrease(int cameraId, int currentIndex, int frequency);
 
 	CButton m_checkStopAlarm;

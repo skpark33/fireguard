@@ -20,6 +20,8 @@
 #define BUF_LEN 4096
 #define WM_TEMPERATURE_ALARM 1049
 
+#define EXTERNAL_MSG_PREFIX    "external/"
+
 
 ////////////////////
 // preSocketHandler
@@ -257,6 +259,17 @@ preSocketSession::run() {
 			sUtil->sock_close(client_fd);
 			continue;
 		}
+
+		int len = strlen(EXTERNAL_MSG_PREFIX);
+
+		if (recvMsg.length() > len && recvMsg.substr(0, len) == EXTERNAL_MSG_PREFIX) {
+			// This is external msg test !!!!!  이는 테스트 데이터이므로 여기서 버린다.
+			TraceLog(("message received..[%s]", recvMsg.c_str()));
+			sUtil->talk(client_fd, "ACK", CLASS_ACK, false); // skpark 2010.09.14  ACK 추가
+			closesocket(client_fd);
+			continue;
+		}
+
 		const char* buf  = recvMsg.c_str();
 
 		//if(classCode == CLASS_BYPASS){
@@ -294,7 +307,7 @@ preSocketSession::destroy() {
 bool 
 preSocketSession::ProcessCmd(const char* recvMsg)
 {
-	//TraceLog(("ProcessCmd(%s)", recvMsg));
+	TraceLog(("ProcessCmd(%s)", recvMsg));
 	//stream.Format("%s/%.2f/%d", data.serialNo, data.temperature, data.level);
 
 	CString recvStr = recvMsg;
