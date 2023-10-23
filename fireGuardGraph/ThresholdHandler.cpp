@@ -68,7 +68,7 @@ void CThresholdHandler::ReadConfig(LPCTSTR maxDefault,  LPCTSTR minDefault)
 	char buf[512];
 	memset(buf, 0x00, 512);
 	GetPrivateProfileString("FIRE_WATCH", m_maxName, maxDefault, buf, 512, iniPath);
-	m_thresholdMax = atoi(buf);
+	m_thresholdMax = atof(buf);
 	if (m_maxEditor)
 	{
 		m_maxEditor->SetWindowTextA(buf);
@@ -100,7 +100,7 @@ void CThresholdHandler::WriteConfig()
 	iniPath += UBCBRW_INI;
 
 	CString buf;
-	buf.Format("%d", int(m_thresholdMax));
+	buf.Format("%.2f", m_thresholdMax);
 	WritePrivateProfileStringA("FIRE_WATCH", m_maxName, buf, iniPath);
 
 	if (m_editFrequency)

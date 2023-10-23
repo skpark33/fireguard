@@ -35,6 +35,7 @@
 #include "skpark/util.h"
 #include "ThermalDetailDlg.h"
 #include "ServerRegiDlg.h"
+#include "skpark/util.h"
 
 static char gszCurDir[MAX_PATH] = "";
 
@@ -256,6 +257,8 @@ BOOL CFireGuardCameraDlg::OnInitDialog()
 	GetDlgItem(IDC_BUTTON_CHANGE_IP)->EnableWindow(m_isHikvision);
 
 	::SetWindowPos(this->m_hWnd, HWND_TOP, 10, 10, -1, -1, SWP_NOSIZE | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+
+	LicenseUtil::LicenseCheck();
 	
 	//AfxBeginThread(CFireGuardCameraDlg::ProcessPopup, this);
 

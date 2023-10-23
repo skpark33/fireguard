@@ -3,6 +3,8 @@
 #include "afxmt.h"
 
 
+#ifndef __GUARDIAN_CENTER__
+
 void OpenIExplorer(CString strParam, int cx = 1024, int cy = 768);
 bool deleteOldFile(const char* rootDir, int day, int hour, int min, const char* filter);
 
@@ -17,6 +19,7 @@ static BOOL CALLBACK find_hwnd_from_pid_proc(HWND hwnd, LPARAM lParam);
 HWND getWHandle(unsigned long pid);
 HWND getWHandle(const char* exename, bool likeCond=false);
 
+#endif
 
 class LicenseUtil
 {

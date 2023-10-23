@@ -20,6 +20,7 @@ public:
 	}
 };
 
+#ifndef __GUARDIAN_CENTER__
 void OpenIExplorer(CString strParam, int cx/*=1024*/, int cy/*=768*/)
 {
 	HRESULT hr;
@@ -136,6 +137,7 @@ bool deleteOldFile(const char* rootDir, int day, int hour, int min, const char* 
 	FindClose(hFile);
 	return true;
 }
+#endif
 
 boolean
 LicenseUtil::ReadAuthFile(std::string& host, std::string& mac)
@@ -228,7 +230,7 @@ void LicenseUtil::LicenseCheck()
 		LICENSE_ERR_CODE = 2;
 	}
 }
-
+#ifndef __GUARDIAN_CENTER__
 unsigned long
 getPid(const char* exename, bool likeCond/*=false*/)
 {
@@ -324,7 +326,7 @@ getWHandle(const char* exename, bool likeCond/*=false*/)
 	TraceLog(("getWHandle(%s)", exename));
 	return getWHandle(getPid(exename, likeCond));
 }
-
+#endif
 
 
 

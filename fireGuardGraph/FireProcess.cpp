@@ -4,10 +4,14 @@
 #include "FireProcess.h"
 #ifndef __GUARDIAN_CENTER__
 #include "skpark/TraceLog.h"
+#include "skpark/util.h"
 #else
 #include "TraceLog.h"
+#include "util.h"
 #endif
 #include "sockUtil.h"
+
+
 
 FireProcess* 	FireProcess::_instance = 0;
 
@@ -280,7 +284,11 @@ bool FireProcess::exDialog(CString& data)
 	bool retval = true;
 	std::string result, errMsg;
 
-	data = EXTERNAL_MSG_PREFIX + data;  // 외부로 보내는 데이터는  external/  표시를 한다.
+	CString buf;
+	buf = EXTERNAL_MSG_PREFIX;  // 외부로 보내는 데이터는  external/  표시를 한다.
+	buf.Append(LicenseUtil::hostId.c_str());
+	buf.Append("/");
+	buf.Append(data);
 
 #ifdef __GUARDIAN_CENTER__
 	// 외부에 온도 데이터 송신
@@ -289,7 +297,7 @@ bool FireProcess::exDialog(CString& data)
 		for (jtr = receiverMap.begin(); jtr != receiverMap.end(); jtr++){
 			RECEIVER_INFO info = jtr->second;
 			TraceLog(("external send start"));
-			retval &= sockUtil::getInstance()->dialog(info.ip, atoi(info.port), 1, data, result, errMsg, 1000);
+			retval &= sockUtil::getInstance()->dialog(info.ip, atoi(info.port), 1, buf, result, errMsg, 1000);
 			TraceLog(("external send end  %s ", errMsg.c_str()));
 		}
 	}
@@ -300,7 +308,7 @@ bool FireProcess::exDialog(CString& data)
 		for (jtr = receiverMap.begin(); jtr != receiverMap.end(); jtr++){
 			RECEIVER_INFO info = jtr->second;
 			TraceLog(("external send start"));
-			retval &= sockUtil::getInstance()->dialog(info.ip, atoi(info.port), 1, data, result, errMsg, 1000);
+			retval &= sockUtil::getInstance()->dialog(info.ip, atoi(info.port), 1, buf, result, errMsg, 1000);
 			TraceLog(("external send end  %s ", errMsg.c_str()));
 		}
 	}

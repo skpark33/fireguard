@@ -325,8 +325,10 @@ BOOL CfireGuardGraphDlg::OnInitDialog()
 		&m_VelocViewer, &m_editVelocMax,
 		&m_aniVelocCtrl, &m_editFrequency); // , &m_editDevi);
 
-	m_velociThreshold->ReadConfig("5", "-5");
-	m_velociThreshold->InitAnimation();
+	CString min, max;
+	min.Format("%.2f", MIN_VELO);
+	max.Format("%.2f", MAX_VELO);
+	m_velociThreshold->ReadConfig(max, min);
 
 	TraceLog(("skpark ----------------------:%f, %d", m_velociThreshold->m_thresholdMax, int(m_velociThreshold->m_thresholdMax / 4.0)));
 	CString veloStr;
@@ -722,7 +724,7 @@ void CfireGuardGraphDlg::OnDataTimer()
 				double threshold = atof(FireProcess::getInstance()->trendThreshold);
 				int level = value < threshold ? 0 : 1;
 				CString  stream;
-				stream.Format("TREND/%d/%.2f/%d/%.1f", j+1, value, level, threshold);
+				stream.Format("TREND/%d/%.2f/%.1f", j+1, value, threshold);
 				FireProcess::getInstance()->exPush(stream);
 				
 				
@@ -989,7 +991,7 @@ void CfireGuardGraphDlg::drawVeloc(CChartViewer *viewer)
 	vChart->getLegend()->setFontSize(10);
 
 	// Configure the y-axis with a 10pts Arial Bold axis title
-	vChart->yAxis()->setTitle("consecutive rises (1 per 0.25 sec)", "tahoma.ttf", 10);
+	vChart->yAxis()->setTitle("moving average", "tahoma.ttf", 10);
 
 	// Configure the x-axis to auto-scale with at least 75 pixels between major tick and 
 	// 15  pixels between minor ticks. This shows more minor grid lines on the chart.
@@ -1070,7 +1072,7 @@ void CfireGuardGraphDlg::drawSlope(CChartViewer *viewer)
 	sChart->getLegend()->setFontSize(10);
 
 	// Configure the y-axis with a 10pts Arial Bold axis title
-	sChart->yAxis()->setTitle("Inclination", "tahoma.ttf", 10);
+	sChart->yAxis()->setTitle("Slope", "tahoma.ttf", 10);
 
 	// Configure the x-axis to auto-scale with at least 75 pixels between major tick and 
 	// 15  pixels between minor ticks. This shows more minor grid lines on the chart.
@@ -1080,7 +1082,7 @@ void CfireGuardGraphDlg::drawSlope(CChartViewer *viewer)
 	sChart->xAxis()->setWidth(2);
 	sChart->yAxis()->setWidth(2);
 
-	//sChart->yAxis()->setLinearScale(m_SlopeViewer.GetMin(), m_SlopeViewer.GetMax());  //skpark disable autoScale
+	//sChart->yAxis()->setLinearScale(m_SlopeViewer.GetMin(), m_SlopeViewer.GetMax());  //skpark enable autoScale
 
 	// Now we add the data to the chart. 
 	double firstTime = m_timeStamps[0];
@@ -1347,10 +1349,10 @@ void CfireGuardGraphDlg::OnBnClickedButtonVelocApply()
 	CString maxStr;
 	m_editVelocMax.GetWindowTextA(maxStr);
 
-	int max = atoi(maxStr);
-	CString buf;
-	buf.Format("= %d 초", max / 4);
-	m_stVeloSec.SetWindowTextA(buf);
+	double max = atof(maxStr);
+	/*CString buf;
+	buf.Format("= %.2f 초", max / 4);
+	m_stVeloSec.SetWindowTextA(buf);*/
 
 	if (max < MIN_VELO)
 	{
@@ -1361,9 +1363,9 @@ void CfireGuardGraphDlg::OnBnClickedButtonVelocApply()
 	{
 		freqStr.Format("%d", MAX_VELO);
 		m_editVelocMax.SetWindowTextA(freqStr);
-		CString buf;
+	/*	CString buf;
 		buf.Format("= %d 초", MAX_VELO/4);
-		m_stVeloSec.SetWindowTextA(buf);
+		m_stVeloSec.SetWindowTextA(buf);*/
 	}
 
 	//m_editDevi.GetWindowTextA(maxStr);
@@ -1460,11 +1462,19 @@ void  CfireGuardGraphDlg::Formula2(int cameraId, int currentIndex, int frequency
 	if (!isFirstTime)  // 처음 frequency 개 값을 버린다.  currentIndex 값은 일정시간이 지나면 frequency 보다 항상 큰 값이다. ( m_currentIndex = sampleSize -1) 따라서 처음에 frequency 값만 버리게 된다.
 	{
 		// 이동 평균 값이 m_rateSeries 에 들어 간다.
-		m_countSeries[cameraId][currentIndex] = avg;
+		m_countSeries[cameraId][currentIndex] = slopeToAngle(avg);  // 값이 너무 작으므로 100배 증폭한다.
 	}
 
 }
 
+
+double CfireGuardGraphDlg::slopeToAngle(double slope) {
+	const double M_PI = 3.14159265358979323846;
+
+	double radian = atan(slope);
+	double degree = radian * (180.0 / M_PI);
+	return degree;
+}
 
 void  CfireGuardGraphDlg::Formula3(int cameraId, int currentIndex, int frequency)
 {

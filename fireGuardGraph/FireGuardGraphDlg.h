@@ -32,8 +32,8 @@ public:
 
 	static const int sampleSize = 360;
 
-	static const int MIN_VELO= -5;
-	static const int MAX_VELO = 5;
+	static const int MIN_VELO= -20;
+	static const int MAX_VELO = 90;
 
 	static const int MIN_THRESHOLD = -50;
 	static const int MAX_THRESHOLD = 500;
@@ -118,6 +118,8 @@ private:
 
 	double getSlope(const std::vector<double>& temperatures);
 	double getAverage(const std::vector<double>& values);
+	double slopeToAngle(double slope);
+
 
 public:
 	CFont*	m_font;
